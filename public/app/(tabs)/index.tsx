@@ -24,9 +24,18 @@ export default function HomeScreen() {
   const [recentCampaigns, setRecentCampaigns] = useState([]);
 
   useEffect(() => {
-    // Simulate loading recent campaigns
+    // Simular carregamento com dados mock
     const timer = setTimeout(() => {
-      setRecentCampaigns([]);
+      // Adicionar campanha mock para testar a interface de jogo
+      setRecentCampaigns([
+        {
+          id: 'mythoscape-demo',
+          title: 'Guardiões de Zhar',
+          lastPlayed: '42 minutos atrás',
+          progress: 65,
+          image: 'https://images.pexels.com/photos/6393364/pexels-photo-6393364.jpeg'
+        }
+      ]);
       setLoading(false);
     }, 1000);
     
@@ -76,21 +85,16 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.recentCampaignsScroll}
         >
-          {/* Display recent campaigns here */}
-          <RecentCampaignCard 
-            title="The Crimson Throne"
-            lastPlayed="2 days ago"
-            progress={75}
-            image="https://images.pexels.com/photos/235985/pexels-photo-235985.jpeg"
-            onPress={() => router.push('/campaigns/1')}
-          />
-          <RecentCampaignCard 
-            title="Ruins of Azlant"
-            lastPlayed="1 week ago"
-            progress={45}
-            image="https://images.pexels.com/photos/33041/antelope-canyon-lower-canyon-arizona.jpg"
-            onPress={() => router.push('/campaigns/2')}
-          />
+          {recentCampaigns.map((campaign) => (
+            <RecentCampaignCard 
+              key={campaign.id}
+              title={campaign.title}
+              lastPlayed={campaign.lastPlayed}
+              progress={campaign.progress}
+              image={campaign.image}
+              onPress={() => router.push(`/game`)}
+            />
+          ))}
         </ScrollView>
       ) : (
         <Card style={styles.emptyContainer}>

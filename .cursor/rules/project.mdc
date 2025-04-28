@@ -1,0 +1,163 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 🎲 Projeto: Plataforma de Mestre de RPG com IA (Pathfinder 2e)
+
+## 📜 Visão Geral
+Uma plataforma **mobile first**, **minimalista** e **clean**, que simula um **Mestre de RPG** usando **IA (LLM Google)**.  
+A história é criada em tempo real para o player, com suporte ao sistema **Pathfinder 2e**, armazenamento no **Supabase** e integração dinâmica com a API da Google.
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+- **Frontend:** Framework responsivo (mobile first), design minimalista
+- **Backend:** Supabase (banco de dados hierárquico)
+- **IA:** API Google LLM (Gemini 2.0 Flash)
+- **Autenticação:** Login/registro de usuários e perfis
+- **Prompt Engineering:** Personalizado para narrativa de RPG e gerenciamento de dados
+
+---
+
+## 🎨 Identidade Visual
+- **Estilo:** Flat, minimalista
+- **Cores:** Definidas com base na psicologia das cores (não detalhado ainda)
+- **Fontes:** Google Fonts (não definido ainda)
+
+---
+
+## 📋 Funcionalidades e Telas já Implementadas
+
+### Página Inicial
+- Hero section
+- Seção de funcionalidades
+- "Como funciona"
+- CTA (Call to Action)
+- Botão para entrar na interface do jogo
+
+### Layout Principal
+- Header com navegação
+- Footer
+- Responsividade completa (mobile first)
+
+### Interface de Jogo
+- Sidebar lateral (organização estilo Obsidian: Locais, NPCs, Quests)
+- Chat central (com narração do Mestre IA)
+- Painel de detalhes (exibe informações clicadas na sidebar)
+- Drawer menus para versão mobile
+
+### Páginas Adicionais
+- Página de mundos (estrutura inicial)
+- Página de aventuras (estrutura inicial)
+- Página 404
+
+---
+
+## 📋 Funcionalidades e Telas Pendentes
+
+### Backend e Integração
+- Integração Supabase completa
+- API de comunicação com LLM da Google
+- Sistema de API Key dinâmico para cada usuário
+- Armazenamento e consulta de dados da campanha
+
+### Autenticação
+- Sistema de login/registro
+- Gerenciamento de perfis de jogador
+
+### Funcionalidades do Jogo
+- Processamento real de mensagens com IA
+- Suporte a comandos especiais via `/comando`
+- Atualização dinâmica do conhecimento conforme descobertas
+- Notificações (descoberta de itens, novos locais, etc.)
+- Sistema de permissões (informações que o player pode ou não ver)
+
+### Experiência do Usuário
+- Animações de imersão
+- Sistema de notificações contextual
+- Refinamento para todos tamanhos de tela
+- Testes de usabilidade
+
+### Páginas e Componentes Adicionais
+- Página de perfil do usuário
+- Página de criação/gerenciamento de campanha
+- Página de configurações
+- Componentes para gerenciamento de personagem
+
+### Prompt Engineering
+- Desenvolvimento completo do prompt mestre para IA
+
+---
+
+## 🔥 Comandos Disponíveis no Chat
+- `/ajuda` — lista de comandos disponíveis
+- `/consultar [termo]` — consultar registros no Supabase
+- `/resumo` — resumo dos acontecimentos da sessão
+- `/salvar [nota]` — salvar uma informação descoberta
+- `/personagem` — informações do personagem
+- `/inventário` — listar itens obtidos
+- `/mundo` — breve resumo do mundo atual
+- `/sair` — encerrar a sessão de jogo
+
+---
+
+## 🧩 Jornada de Onboarding: Criação de Campanha
+- Definir **Nome da Campanha**
+- Escolher **Cenário**:
+  - Pronto
+  - Gerado pela IA
+- Configurar **Personagem** (Pathfinder 2e):
+  - Ancestralidade, Classe, Background, Equipamentos
+- Definir **Tom da Aventura**:
+  - Exploração
+  - Política
+  - Combate
+  - Mistério
+  - Horror
+- Selecionar **Modo de Jogo**:
+  - Solo
+  - Grupo
+- Definir **Duração da Campanha**:
+  - One-shot, curta, média ou longa duração
+- IA gera aventura personalizada
+- Revisão final
+- Início do jogo
+
+---
+
+## 🔌 Instruções de Uso da API Gemini
+
+```bash
+curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=GEMINI_API_KEY" \
+-H 'Content-Type: application/json' \
+-X POST \
+-d '{
+  "contents": [{
+    "parts":[{"text": "Explain how AI works"}]
+    }]
+   }'
+```
+- Substituir `GEMINI_API_KEY` pela chave do usuário (dinâmica).
+
+---
+
+## 📚 Banco de Dados Hierárquico (Supabase)
+Organização dos dados:
+```plaintext
+| Continente
+|---| Nação
+|------| Cidade
+|---------| NPC
+|---------| Quests
+|---------| Itens
+```
+- Permite consultas rápidas e segmentadas
+- Otimização do uso de tokens da LLM
+
+---
+
+# 🚀 Resumo Final
+Estamos criando a **plataforma definitiva de RPG solo com IA**, onde o jogador vive aventuras personalizadas, em um ambiente totalmente pensado para ser **imersivo**, **escalável**, **modular** e **extremamente responsivo**.
+
+---

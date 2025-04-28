@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
   TouchableOpacity,
   ActivityIndicator
 } from 'react-native';
@@ -22,16 +22,26 @@ export default function CampaignsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // Simulate loading campaigns
+    // Simular carregamento com dados mock
     const timer = setTimeout(() => {
-      setCampaigns([]);
+      setCampaigns([
+        {
+          id: 'mythoscape-demo',
+          title: 'Guardiões de Zhar',
+          description: 'Uma aventura épica pelos Reinos Esquecidos',
+          players: ['Elric', 'Lyra', 'Thorne'],
+          lastPlayed: '42 minutos atrás',
+          progress: 65,
+          image: 'https://images.pexels.com/photos/6393364/pexels-photo-6393364.jpeg'
+        }
+      ]);
       setLoading(false);
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
-  const filteredCampaigns = campaigns.filter(campaign => 
+  const filteredCampaigns = campaigns.filter(campaign =>
     campaign.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -44,16 +54,16 @@ export default function CampaignsScreen() {
           onChangeText={setSearchQuery}
           icon={<Search size={20} color={colors.textLight} />}
         />
-        
-        <TouchableOpacity 
-          style={[styles.filterButton, { borderColor: colors.border }]} 
-          onPress={() => {/* Show filters */}}
+
+        <TouchableOpacity
+          style={[styles.filterButton, { borderColor: colors.border }]}
+          onPress={() => {/* Show filters */ }}
         >
           <Filter size={20} color={colors.text} />
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.addButton, { backgroundColor: colors.primary }]} 
+
+        <TouchableOpacity
+          style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={() => router.push('/campaigns/new')}
         >
           <Plus size={20} color="#FFFFFF" />
@@ -76,7 +86,7 @@ export default function CampaignsScreen() {
               lastPlayed={item.lastPlayed}
               progress={item.progress}
               image={item.image}
-              onPress={() => router.push(`/campaigns/${item.id}`)}
+              onPress={() => router.push(`/game`)}
             />
           )}
           contentContainerStyle={styles.listContent}
@@ -91,7 +101,7 @@ export default function CampaignsScreen() {
             <Text style={[styles.emptyText, { color: colors.textLight }]}>
               Create your first campaign to begin your journey into the world of Pathfinder 2e
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.createButton, { backgroundColor: colors.primary }]}
               onPress={() => router.push('/campaigns/new')}
             >
