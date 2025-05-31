@@ -1,30 +1,14 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import { Label } from '../components/ui/label';
-import { Progress } from '../components/ui/progress';
-
-interface CampaignFormData {
-  name: string;
-  gameMode: string;
-  tone: string;
-  duration: string;
-  scenarioSummary: string;
-}
-
-const INITIAL_FORM_DATA: CampaignFormData = {
-  name: '',
-  gameMode: '',
-  tone: '',
-  duration: '',
-  scenarioSummary: ''
-};
+import { useAuth } from '@/contexts/AuthContext';
+import { ref, push, set, update } from 'firebase/database';
+import { database } from '@/lib/firebase';
 
 const STEPS = [
   { id: 1, title: 'Informações Básicas', description: 'Nome e configurações iniciais' },
@@ -33,94 +17,101 @@ const STEPS = [
 ];
 
 const GAME_MODE_OPTIONS = [
-  { value: 'solo', label: 'Solo' },
-  { value: 'group', label: 'Grupo' }
+  { value: 'Solo', label: 'Solo' },
+  { value: 'Grupo', label: 'Grupo' }
 ];
 
 const TONE_OPTIONS = [
-  { value: 'serious', label: 'Sério' },
-  { value: 'humorous', label: 'Humorístico' },
-  { value: 'dark', label: 'Sombrio' },
-  { value: 'epic', label: 'Épico' },
-  { value: 'classic-adventure', label: 'Aventura Clássica' }
+  { value: 'Sombrio', label: 'Sombrio' },
+  { value: 'Heróico', label: 'Heróico' },
+  { value: 'Épico', label: 'Épico' },
+  { value: 'Clássico', label: 'Clássico' },
+  { value: 'Humorístico', label: 'Humorístico' }
 ];
 
 const DURATION_OPTIONS = [
-  { value: 'short', label: 'Curta (1-3 sessões)' },
-  { value: 'medium', label: 'Média (4-10 sessões)' },
-  { value: 'long', label: 'Longa (10+ sessões)' }
+  { value: 'Curta', label: 'Curta (1-3 sessões)' },
+  { value: 'Média', label: 'Média (4-10 sessões)' },
+  { value: 'Longa', label: 'Longa (10+ sessões)' }
 ];
 
-const CreateCampaignPage: React.FC = () => {
+const initialState = {
+  campaignName: '',
+  playerMode: '',
+  tone: '',
+  duration: '',
+  settingSummary: '',
+  system: 'Pathfinder 2e',
+};
+
+export default function CreateCampaignPage() {
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState(initialState);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<CampaignFormData>(INITIAL_FORM_DATA);
+  const { user } = useAuth();
 
-  const updateFormData = (field: keyof CampaignFormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
 
-  const handleNext = () => {
-    if (currentStep < STEPS.length) {
-      setCurrentStep(prev => prev + 1);
+  function handleSelect(name: string, value: string) {
+    setForm({ ...form, [name]: value });
+  }
+
+  function nextStep() {
+    setStep((s) => Math.min(s + 1, STEPS.length));
+  }
+  function prevStep() {
+    setStep((s) => Math.max(s - 1, 1));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      if (!user) throw new Error('Usuário não autenticado');
+      const campaignRef = push(ref(database, 'campaigns'));
+      const campaignId = campaignRef.key!;
+      const now = Date.now();
+      await set(ref(database, `campaigns/${campaignId}/metadata`), {
+        ...form,
+        creationTimestamp: now,
+        lastUpdateTimestamp: now,
+        playerUserIds: { [user.uid]: true },
+        isPublic: false
+      });
+      await update(ref(database, `users/${user.uid}/campaignsAsPlayer`), {
+        [campaignId]: true
+      });
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError('Erro ao criar campanha');
+    } finally {
+      setLoading(false);
     }
-  };
+  }
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
-
-  const handleSubmit = () => {
-    console.log('Dados da campanha:', formData);
-    // Por enquanto, apenas logamos os dados
-    // Aqui será implementada a chamada para o backend
-    navigate('/dashboard');
-  };
-
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1:
-        return formData.name.trim() !== '' && formData.gameMode !== '';
-      case 2:
-        return formData.tone !== '' && formData.duration !== '';
-      case 3:
-        return formData.scenarioSummary.trim() !== '';
-      default:
-        return false;
-    }
-  };
-
-  const progressPercentage = (currentStep / STEPS.length) * 100;
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
+  return (
+    <div className="max-w-lg mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Criar Nova Campanha</h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {step === 1 && (
+          <>
             <Input
               label="Nome da Campanha"
-              value={formData.name}
-              onChange={(e) => updateFormData('name', e.target.value)}
-              placeholder="Digite o nome da sua campanha"
+              name="campaignName"
+              value={form.campaignName}
+              onChange={handleChange}
+              required
             />
-            
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-neutral-700">Sistema</Label>
-              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-md">
-                <p className="text-sm text-neutral-600">Sistema: Pathfinder 2ª Edição</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
               <Label className="text-sm font-medium text-neutral-700">Modo de Jogo</Label>
-              <RadioGroup 
-                value={formData.gameMode} 
-                onValueChange={(value) => updateFormData('gameMode', value)}
+              <RadioGroup
+                value={form.playerMode}
+                onValueChange={(value) => handleSelect('playerMode', value)}
               >
                 {GAME_MODE_OPTIONS.map((option) => (
                   <div key={option.value} className="flex items-center space-x-2">
@@ -130,15 +121,13 @@ const CreateCampaignPage: React.FC = () => {
                 ))}
               </RadioGroup>
             </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
+          </>
+        )}
+        {step === 2 && (
+          <>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-neutral-700">Tom da Campanha</Label>
-              <Select value={formData.tone} onValueChange={(value) => updateFormData('tone', value)}>
+              <Select value={form.tone} onValueChange={(value) => handleSelect('tone', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tom da campanha" />
                 </SelectTrigger>
@@ -151,10 +140,9 @@ const CreateCampaignPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label className="text-sm font-medium text-neutral-700">Duração Estimada</Label>
-              <Select value={formData.duration} onValueChange={(value) => updateFormData('duration', value)}>
+              <Select value={form.duration} onValueChange={(value) => handleSelect('duration', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a duração estimada" />
                 </SelectTrigger>
@@ -167,112 +155,45 @@ const CreateCampaignPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
+          </>
+        )}
+        {step === 3 && (
+          <>
             <Textarea
               label="Resumo do Cenário"
-              value={formData.scenarioSummary}
-              onChange={(e) => updateFormData('scenarioSummary', e.target.value)}
-              placeholder="Ex: Uma pequena vila à beira de uma floresta antiga com ruínas misteriosas..."
-              rows={6}
+              name="settingSummary"
+              value={form.settingSummary}
+              onChange={handleChange}
+              required
             />
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-neutral-900 mb-2">
-          Criar Nova Campanha
-        </h1>
-        <p className="text-neutral-600">
-          Siga os passos abaixo para configurar sua nova campanha
-        </p>
-      </div>
-
-      {/* Progress Indicator */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          {STEPS.map((step, index) => (
-            <div key={step.id} className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                currentStep > step.id 
-                  ? 'bg-primary text-white' 
-                  : currentStep === step.id 
-                    ? 'bg-primary text-white' 
-                    : 'bg-neutral-200 text-neutral-500'
-              }`}>
-                {currentStep > step.id ? (
-                  <Check className="w-4 h-4" />
-                ) : (
-                  <span className="text-sm font-medium">{step.id}</span>
-                )}
-              </div>
-              {index < STEPS.length - 1 && (
-                <div className={`w-full h-0.5 mx-4 ${
-                  currentStep > step.id ? 'bg-primary' : 'bg-neutral-200'
-                }`} />
-              )}
-            </div>
-          ))}
-        </div>
-        
-        <Progress value={progressPercentage} className="mb-2" />
-        
-        <div className="text-center">
-          <h2 className="text-lg font-medium text-neutral-900">
-            {STEPS[currentStep - 1].title}
-          </h2>
-          <p className="text-sm text-neutral-600">
-            {STEPS[currentStep - 1].description}
-          </p>
-        </div>
-      </div>
-
-      {/* Form Content */}
-      <div className="bg-background border border-neutral-200 rounded-lg p-6 mb-8">
-        {renderStepContent()}
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={currentStep === 1}
-        >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Anterior
-        </Button>
-
-        {currentStep === STEPS.length ? (
-          <Button
-            onClick={handleSubmit}
-            disabled={!canProceed()}
-          >
-            Criar Campanha
-          </Button>
-        ) : (
-          <Button
-            onClick={handleNext}
-            disabled={!canProceed()}
-          >
-            Próximo
-            <ChevronRight className="w-4 h-4 ml-2" />
-          </Button>
+            <Input
+              label="Sistema"
+              name="system"
+              value={form.system}
+              onChange={handleChange}
+              required
+              disabled
+            />
+          </>
         )}
-      </div>
+        <div className="flex gap-2">
+          {step > 1 && (
+            <Button type="button" onClick={prevStep} variant="outline">
+              Voltar
+            </Button>
+          )}
+          {step < STEPS.length ? (
+            <Button type="button" onClick={nextStep}>
+              Próximo
+            </Button>
+          ) : (
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Criando...' : 'Criar Campanha'}
+            </Button>
+          )}
+        </div>
+        {error && <div className="text-red-500 text-sm">{error}</div>}
+      </form>
     </div>
   );
-};
-
-export default CreateCampaignPage;
+}

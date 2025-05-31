@@ -1,6 +1,60 @@
 {
   "rules": {
-    ".read": "now < 1751252400000",  // 2025-6-30
-    ".write": "now < 1751252400000",  // 2025-6-30
+    "users": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && auth.uid === $userId"
+      }
+    },
+    "campaigns": {
+      "$campaignId": {
+        "metadata": {
+          ".read": "auth != null && data.child('playerUserIds').child(auth.uid).exists()",
+          ".write": "auth != null && data.child('playerUserIds').child(auth.uid).exists()"
+        },
+        "world": {
+          ".read": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()",
+          ".write": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()"
+        },
+        "players": {
+          "$playerId": {
+            ".read": "auth != null && data.parent().parent().child('metadata/playerUserIds').child(auth.uid).exists()",
+            ".write": "auth != null && auth.uid === $playerId"
+          }
+        },
+        "npcs": {
+          ".read": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()",
+          ".write": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()"
+        },
+        "quests": {
+          ".read": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()",
+          ".write": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()"
+        },
+        "gameState": {
+          ".read": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()",
+          ".write": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()"
+        },
+        "history": {
+          ".read": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()",
+          ".write": "auth != null && data.parent().child('metadata/playerUserIds').child(auth.uid).exists()"
+        },
+        "rules": {
+          ".read": true,
+          ".write": false
+        },
+        "editorContent": {
+          "$userId": {
+            ".read": "auth != null && (auth.uid === $userId || data.parent().parent().child('metadata/playerUserIds').child(auth.uid).exists())",
+            ".write": "auth != null && auth.uid === $userId"
+          }
+        }
+      }
+    },
+    "rooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
   }
 }
