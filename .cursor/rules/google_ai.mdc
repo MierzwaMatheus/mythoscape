@@ -1,7 +1,7 @@
 ---
-type: Auto Attached
-description: Regras específicas para interação com a API do Google AI (LLM).
-patterns: ["src/services/aiService.js", "src/hooks/useAIResponse.js"]
+description: 
+globs: 
+alwaysApply: true
 ---
 
 # Regras para Google AI (LLM) API

@@ -1,6 +1,7 @@
 ---
-type: Always
-description: Regras gerais de desenvolvimento para o projeto MythoScape.
+description: 
+globs: 
+alwaysApply: true
 ---
 
 # Regras Gerais do Projeto MythoScape

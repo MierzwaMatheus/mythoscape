@@ -1,0 +1,124 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 248 250 252; /* neutral-50 */
+    --foreground: 15 23 42; /* neutral-900 */
+
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
+
+    --primary: 88 28 135; /* #581C87 */
+    --primary-foreground: 255 255 255;
+
+    --secondary: 13 148 136; /* #0D9488 */
+    --secondary-foreground: 255 255 255;
+
+    --muted: 241 245 249; /* neutral-100 */
+    --muted-foreground: 100 116 139; /* neutral-500 */
+
+    --accent: 241 245 249;
+    --accent-foreground: 15 23 42;
+
+    --destructive: 220 38 38; /* red-600 */
+    --destructive-foreground: 255 255 255;
+
+    --border: 203 213 225; /* neutral-300 */
+    --input: 203 213 225;
+    --ring: 88 28 135; /* primary */
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 255 255 255;
+    --sidebar-foreground: 15 23 42;
+    --sidebar-primary: 88 28 135;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 241 245 249;
+    --sidebar-accent-foreground: 15 23 42;
+    --sidebar-border: 203 213 225;
+    --sidebar-ring: 88 28 135;
+  }
+
+  .dark {
+    --background: 15 23 42;
+    --foreground: 248 250 252;
+
+    --card: 15 23 42;
+    --card-foreground: 248 250 252;
+
+    --popover: 15 23 42;
+    --popover-foreground: 248 250 252;
+
+    --primary: 139 62 255;
+    --primary-foreground: 15 23 42;
+
+    --secondary: 20 184 166;
+    --secondary-foreground: 15 23 42;
+
+    --muted: 51 65 85;
+    --muted-foreground: 148 163 184;
+
+    --accent: 51 65 85;
+    --accent-foreground: 248 250 252;
+
+    --destructive: 239 68 68;
+    --destructive-foreground: 248 250 252;
+
+    --border: 51 65 85;
+    --input: 51 65 85;
+    --ring: 139 62 255;
+
+    --sidebar-background: 15 23 42;
+    --sidebar-foreground: 248 250 252;
+    --sidebar-primary: 139 62 255;
+    --sidebar-primary-foreground: 15 23 42;
+    --sidebar-accent: 51 65 85;
+    --sidebar-accent-foreground: 248 250 252;
+    --sidebar-border: 51 65 85;
+    --sidebar-ring: 139 62 255;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Typography Base Styles */
+  h1 {
+    @apply text-3xl font-semibold text-neutral-900 leading-tight;
+  }
+
+  h2 {
+    @apply text-xl font-semibold text-neutral-900 leading-tight;
+  }
+
+  h3 {
+    @apply text-lg font-medium text-neutral-900 leading-tight;
+  }
+
+  p {
+    @apply text-base text-neutral-700 leading-relaxed;
+  }
+
+  small {
+    @apply text-sm text-neutral-500;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

@@ -1,7 +1,7 @@
 ---
-type: Auto Attached
-description: Regras específicas para interação com Firebase Realtime Database.
-patterns: ["src/services/firebase.js", "src/services/campaignService.js", "src/services/characterService.js", "src/hooks/useDatabase.js"]
+description: 
+globs: 
+alwaysApply: true
 ---
 
 # Regras para Firebase Realtime Database

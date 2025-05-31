@@ -1,0 +1,276 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Estrutura do Firebase Realtime Database para MythoScape
+
+Esta estrutura define como os dados da campanha de RPG serão armazenados no Firebase Realtime Database, servindo como contexto para a IA Mestre (MythoScape GM) e para a interface do usuário.
+A separação entre `playerKnowledge` e `gmKnowledge` é crucial para controlar o fluxo de informação.
+
+```json
+{
+  "users": {
+    "userId1": {
+      "username": "Jogador Mestre",
+      "email": "mestre@email.com",
+      "campaignsAsGM": {
+        "campaignId1": true
+      },
+      "campaignsAsPlayer": {
+        "campaignId2": true
+      },
+      "googleApiKey": "user_provided_api_key" // Armazenado de forma segura, idealmente não aqui diretamente, mas gerenciado pelo Auth/Functions
+    },
+    "userId2": {
+      "username": "Jogador Aventureiro",
+      "email": "jogador@email.com",
+      "campaignsAsPlayer": {
+        "campaignId1": true,
+        "campaignId3": true
+      }
+    }
+    // ... outros usuários
+  },
+
+  "campaigns": {
+    "campaignId1": {
+      "metadata": {
+        "campaignName": "A Tumba Esquecida",
+        "gmUserId": "userId1",
+        "playerUserIds": {
+          "userId2": true
+        },
+        "system": "Pathfinder 2e",
+        "tone": "Sombrio",
+        "playerMode": "Solo", // ou "Grupo"
+        "duration": "Média",
+        "settingSummary": "Uma antiga tumba redescoberta em uma floresta amaldiçoada.",
+        "creationTimestamp": 1678886400000,
+        "lastUpdateTimestamp": 1678890000000,
+        "isPublic": false // Para busca de campanhas públicas
+      },
+
+      "world": {
+        "locations": {
+          "locationId1": {
+            "name": "Floresta Sussurrante",
+            "playerKnowledge": {
+              "description": "Uma floresta densa e escura, conhecida por ruídos estranhos e desaparecimentos.",
+              "knownExits": ["entrada_tumba", "trilha_vila"]
+            },
+            "gmKnowledge": {
+              "description": "A floresta é amaldiçoada por um espírito antigo. Há uma clareira secreta a leste.",
+              "hiddenExits": ["clareira_secreta"],
+              "encounters": ["encounterId1"],
+              "secrets": ["O espírito se manifesta à noite."]
+            }
+          },
+          "locationId2": {
+            "name": "Entrada da Tumba",
+            // ... playerKnowledge vs gmKnowledge
+          }
+          // ... outras localizações
+        },
+        "factions": {
+          "factionId1": {
+            "name": "Culto da Serpente",
+            "playerKnowledge": {
+              "reputation": "Rumores de atividades suspeitas na região."
+            },
+            "gmKnowledge": {
+              "goals": "Despertar o deus serpente na tumba.",
+              "leader": "npcId2",
+              "members": ["npcId3", "npcId4"],
+              "baseLocation": "locationId3"
+            }
+          }
+          // ... outras facções
+        },
+        "lore": {
+          "loreId1": {
+            "topic": "A Maldição da Floresta",
+            "playerKnowledge": {
+              "summary": "Dizem que a floresta é amaldiçoada, mas ninguém sabe ao certo por quê."
+            },
+            "gmKnowledge": {
+              "details": "A maldição foi lançada por um druida traído há 500 anos para proteger a tumba.",
+              "trigger": "Entrar na câmara central da tumba."
+            }
+          }
+          // ... outros pontos de lore
+        }
+      },
+
+      "players": {
+        "userId2": { // Corresponde ao ID do usuário
+          "characterId": "charId1",
+          "characterName": "Valerius",
+          "class": "Guerreiro",
+          "ancestry": "Humano",
+          "background": "Guarda",
+          "alignment": "Leal e Bom",
+          "level": 1,
+          "xp": 150,
+          "attributes": {
+            "strength": 16,
+            "dexterity": 12,
+            // ... outros atributos PF2e
+          },
+          "stats": {
+            "maxHP": 20,
+            "currentHP": 15,
+            "ac": 18,
+            "speed": 25
+            // ... outras estatísticas derivadas
+          },
+          "skills": {
+            "athletics": 4,
+            "intimidation": 3
+            // ... outras perícias PF2e
+          },
+          "feats": [
+            "Power Attack"
+            // ... outros talentos
+          ],
+          "inventory": {
+            "itemId1": { "name": "Espada Longa", "quantity": 1, "description": "Uma espada confiável.", "equipped": true },
+            "itemId2": { "name": "Escudo de Aço", "quantity": 1, "equipped": true },
+            "itemId3": { "name": "Poção de Cura (Menor)", "quantity": 2 },
+            "gold": 15
+          },
+          "conditions": [], // Ex: ["ferido 1", "amedrontado 2"]
+          "notes": {
+             "noteId1": { "title": "Sobre o Culto", "content": "Parecem perigosos, investigar mais.", "timestamp": 1678888000000 }
+          },
+          "knownInfo": { // Informações específicas que este jogador descobriu
+            "locations": {"locationId1": true},
+            "npcs": {"npcId1": "amigável"},
+            "lore": {"loreId1": true}
+          }
+        }
+        // ... outros jogadores na campanha
+      },
+
+      "npcs": {
+        "npcId1": {
+          "name": "Elara, a Eremita",
+          "playerKnowledge": {
+            "description": "Uma velha senhora que vive isolada na floresta. Parece saber muito sobre ervas.",
+            "location": "locationId1",
+            "disposition": "Neutro"
+          },
+          "gmKnowledge": {
+            "description": "Antiga aventureira, conhece a entrada secreta da tumba.",
+            "stats": { "level": 3, "class": "Druida" },
+            "secrets": ["Possui um mapa parcial da tumba."],
+            "quests": ["questId2"],
+            "inventory": ["item_mapa_parcial", "item_adaga_ritual"]
+          }
+        },
+        "npcId2": {
+          "name": "Zarthus, Líder do Culto",
+          // ... playerKnowledge vs gmKnowledge
+        }
+        // ... outros NPCs
+      },
+
+      "quests": {
+        "questId1": {
+          "name": "Investigar a Tumba",
+          "playerKnowledge": {
+            "description": "Explore a Tumba Esquecida e descubra seus segredos.",
+            "giver": "Ninguém (descoberta)",
+            "status": "Ativa",
+            "objectives": [
+              { "id": "obj1", "text": "Encontrar a entrada da tumba.", "completed": true },
+              { "id": "obj2", "text": "Explorar a primeira câmara.", "completed": false }
+            ]
+          },
+          "gmKnowledge": {
+            "trueGoal": "Impedir o Culto da Serpente.",
+            "reward": "100 XP, item mágico aleatório",
+            "hiddenObjectives": [
+              { "id": "hobj1", "text": "Derrotar Zarthus.", "completed": false }
+            ],
+            "associatedNpcs": ["npcId2"],
+            "associatedLocations": ["locationId2", "locationId3"]
+          }
+        }
+        // ... outras quests
+      },
+
+      "gameState": {
+        "currentLocationId": "locationId1",
+        "inGameDateTime": "Dia 1, 10:00",
+        "turnOrder": [], // Se em combate: ["charId1", "npcId3", "npcId4"]
+        "activeSceneDescription": "Vocês estão na borda da Floresta Sussurrante, o ar é frio e úmido."
+      },
+
+      "history": {
+        "logEntryId1": {
+          "timestamp": 1678887000000,
+          "type": "chat", // ou "action", "event"
+          "userId": "userId2", // ou "gm"
+          "content": "Valerius decide seguir a trilha escura para dentro da floresta."
+        },
+        "logEntryId2": {
+          "timestamp": 1678887500000,
+          "type": "event",
+          "userId": "gm",
+          "content": "Um uivo distante ecoa pela floresta."
+        }
+        // ... outros logs (pode ser limitado para contexto da IA)
+      },
+
+      "rules": { // Snippets de regras PF2e relevantes para a IA operar
+        "skillChecks": {
+          "difficultyClasses": { "trained": 15, "expert": 20, "master": 30, "legendary": 40 },
+          "degreesOfSuccess": "Critical Success (+10), Success, Failure, Critical Failure (-10)"
+        },
+        "basicActions": {
+          "strike": "Faça um ataque corpo a corpo ou à distância.",
+          "move": "Mova-se até sua velocidade."
+          // ... outras ações básicas
+        },
+        "conditions": {
+          "ferido": "Recebe dano igual ao valor da condição no início do turno."
+          // ... outras condições
+        }
+        // ... outras regras necessárias
+      },
+
+      "editorContent": { // Conteúdo do editor Markdown lateral
+         "userId2": {
+            "pageId1": { "title": "Locais Importantes", "content": "# Floresta Sussurrante\n- Perigosa\n- Onde encontrar Elara?" },
+            "pageId2": { "title": "NPCs", "content": "## Elara\n- Sabe sobre ervas" }
+         }
+         // ... conteúdo para outros jogadores
+      }
+    }
+    // ... outras campanhas
+  },
+
+  "rooms": { // Para gerenciamento de sessões multiplayer
+    "roomId1": {
+      "campaignId": "campaignId1",
+      "activePlayerIds": {
+        "userId2": true,
+        "userId3": true
+      },
+      "gmUserId": "userId1",
+      "creationTimestamp": 1678891000000,
+      "status": "active" // ou "inactive"
+    }
+    // ... outras salas
+  }
+}
+```
+
+**Observações:**
+
+*   **IDs:** Usar IDs únicos gerados pelo Firebase (`push()`) ou UUIDs para campanhas, personagens, itens, etc., onde aplicável.
+*   **Player vs. GM Knowledge:** A IA receberá uma versão filtrada desta estrutura como contexto, contendo apenas `metadata`, `gameState`, `rules`, `history` (parcial), e as seções `playerKnowledge` de `world`, `npcs`, `quests`, além da ficha completa (`players`) do(s) personagem(ns) ativo(s).
+*   **Regras:** O nó `rules` é uma simplificação. Idealmente, a IA teria acesso a um conjunto mais robusto de regras PF2e, mas para o escopo inicial, snippets essenciais podem ser armazenados aqui.
+*   **Editor Content:** Armazena o conteúdo do editor Markdown para cada jogador na campanha.
+*   **Escalabilidade:** Esta estrutura pode precisar de otimizações (desnormalização, índices) conforme a quantidade de dados aumenta, mas serve como um ponto de partida robusto.

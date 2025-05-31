@@ -1,0 +1,65 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Tabela de Tarefas Detalhadas - Projeto MythoScape
+
+Esta tabela detalha as principais funcionalidades e subtasks necessárias para o desenvolvimento da aplicação MythoScape, incluindo ordem de execução sugerida, complexidade estimada e dependências.
+
+| Ordem | Tarefa/Subtarefa                     | Descrição Técnica Detalhada                                                                                                                               | Complexidade | Dependências                 |
+|-------|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|------------------------------|
+| **1** | **Setup Inicial e Configuração**     | Configuração base do projeto e autenticação.                                                                                                              | **Média**    | -                            |
+| 1.1   | Setup Frontend (React + Vite)        | Inicializar projeto com Vite e React (TypeScript). Configurar estrutura de pastas inicial, roteamento básico (React Router DOM), e libs essenciais.        | Baixa        | -                            |
+| 1.2   | Setup Backend (Firebase)             | Configurar projeto Firebase (Auth, Realtime Database). Instalar SDK do Firebase no frontend. Criar arquivo de configuração (`firebase.js`).               | Baixa        | 1.1                          |
+| 1.3   | Autenticação de Usuário (Firebase)   | Implementar fluxo de login/cadastro com Firebase Auth (ex: Google Sign-In, Email/Senha). Gerenciar estado de autenticação no frontend (Context API/Hook). | Média        | 1.1, 1.2                     |
+| 1.4   | Estrutura Inicial do RTDB            | Criar nós iniciais no RTDB (`users`, `campaigns`, `rooms`) conforme `firebase_rtdb_structure.md`.                                                          | Baixa        | 1.2                          |
+| 1.5   | Configuração API Key Usuário (UI)    | Criar seção nas configurações do usuário (ou local seguro) para inserir e salvar a chave da API do Google AI. **NÃO versionar chaves!**                   | Média        | 1.1, 1.3                     |
+| 1.6   | Configuração API Key Usuário (Lógica)| Implementar lógica para buscar/usar a chave salva ao fazer chamadas para a Google AI API.                                                                 | Média        | 1.2, 1.5                     |
+| **2** | **Dashboard de Campanhas**           | Tela principal onde o usuário vê suas campanhas (como GM ou Jogador).                                                                                     | **Média**    | 1 (Setup), 3 (Criação Camp.) |
+| 2.1   | UI Dashboard                         | Criar layout do dashboard (React). Exibir lista de campanhas. Incluir botão para criar nova campanha.                                                     | Baixa        | 1.1, 1.3                     |
+| 2.2   | Lógica de Busca de Campanhas         | Criar hook/serviço para buscar IDs de campanhas do nó `users/{userId}/campaignsAsGM` e `users/{userId}/campaignsAsPlayer` no RTDB.                       | Média        | 1.2, 1.3, 1.4                |
+| 2.3   | Exibição de Campanhas                | Buscar metadados básicos das campanhas listadas (nó `campaigns/{campaignId}/metadata`) e exibi-los em cards no dashboard.                               | Média        | 2.1, 2.2                     |
+| 2.4   | Navegação para Campanha              | Implementar navegação ao clicar em um card de campanha (leva para a Tela de Jogo).                                                                        | Baixa        | 2.1, 5 (Tela Jogo)           |
+| **3** | **Criação/Onboarding de Campanha**   | Fluxo para o GM criar uma nova campanha, definindo parâmetros iniciais.                                                                                 | **Alta**     | 1 (Setup)                    |
+| 3.1   | UI Formulário Onboarding             | Criar formulário multi-etapas (React) para coletar: Nome, Tom, Modo, Duração, Cenário (descrição), Sistema (fixo PF2e por ora). Usar componentes de UI. | Média        | 1.1                          |
+| 3.2   | Validação de Inputs                  | Implementar validação dos campos do formulário no frontend.                                                                                               | Baixa        | 3.1                          |
+| 3.3   | Lógica de Criação (Frontend)         | Coletar dados do formulário e enviar para a função/lógica de backend.                                                                                     | Baixa        | 3.1, 3.2                     |
+| 3.4   | Lógica de Criação (Backend/Firebase) | Criar função (ou lógica no cliente segura) para: receber dados, gerar `campaignId`, criar entrada em `campaigns/{campaignId}/metadata`, adicionar ID em `users/{gmUserId}/campaignsAsGM`. | Média        | 1.2, 1.4, `firebase_rtdb_structure.md` |
+| 3.5   | Redirecionamento Pós-Criação         | Redirecionar o GM para o dashboard (ou tela da campanha recém-criada) após sucesso.                                                                       | Baixa        | 3.1, 3.4, 2 (Dashboard)      |
+| **4** | **Criação de Personagem (PF2e)**     | Fluxo para o jogador criar um personagem dentro de uma campanha.                                                                                        | **Alta**     | 1 (Setup), 3 (Criação Camp.) |
+| 4.1   | UI Criação de Personagem             | Criar interface (provavelmente multi-etapas) para guiar o jogador na criação (Nome, Classe, Ancestralidade, Background, Atributos, Perícias, Talentos PF2e). | Alta         | 1.1                          |
+| 4.2   | Lógica de Regras PF2e (Frontend)     | Implementar lógica básica de PF2e para cálculo de bônus, validações (ex: pré-requisitos de talentos - *simplificado inicialmente*).                     | Alta         | 4.1                          |
+| 4.3   | Validação e Submissão                | Validar dados do personagem e enviar para o backend.                                                                                                      | Média        | 4.1, 4.2                     |
+| 4.4   | Lógica de Criação (Backend/Firebase) | Criar função/lógica para: receber dados, gerar `characterId`, criar entrada em `campaigns/{campaignId}/players/{userId}`, associar `characterId` a `userId`. | Média        | 1.2, 3.4, `firebase_rtdb_structure.md` |
+| 4.5   | Integração com Campanha              | Garantir que o personagem criado esteja corretamente associado à campanha e ao jogador.                                                                  | Baixa        | 4.4                          |
+| **5** | **Tela de Jogo (Chat e IA)**         | Interface principal onde a campanha acontece.                                                                                                             | **Muito Alta** | 1, 3, 4, `prompt_mestre_ia.txt`, `firebase_rtdb_structure.md` |
+| 5.1   | UI Layout Tela de Jogo               | Criar layout principal com área de chat, input de texto, e espaço para abas laterais (Ficha, Editor).                                                   | Média        | 1.1                          |
+| 5.2   | Componente de Chat                   | Criar componente React para exibir histórico de mensagens (`campaigns/{campaignId}/history`). Escutar novas mensagens no RTDB (`onValue`).               | Alta         | 1.1, 1.2, 5.1                |
+| 5.3   | Input de Comando/Chat                | Criar input para o jogador digitar mensagens ou comandos (`/comando`).                                                                                    | Média        | 1.1, 5.1                     |
+| 5.4   | Lógica de Envio de Mensagem          | Ao enviar, adicionar mensagem ao nó `history` no RTDB.                                                                                                    | Média        | 1.2, 5.3                     |
+| 5.5   | Serviço de Interação com IA          | Criar serviço (`aiService.js`) para: buscar contexto relevante do RTDB, formatar prompt (`prompt_mestre_ia.txt`), chamar a API Google AI (usando chave do user). | Alta         | 1.2, 1.6, `prompt_mestre_ia.txt`, `firebase_rtdb_structure.md` |
+| 5.6   | Processamento da Resposta da IA      | Receber resposta JSON da IA (`narrativeResponse`, `databaseUpdates`).                                                                                     | Alta         | 5.5                          |
+| 5.7   | Atualização do RTDB pela IA          | Criar função/lógica (idealmente segura, ex: Firebase Function) para receber `databaseUpdates` e aplicar as mudanças no RTDB de forma segura e atômica. | Alta         | 1.2, 5.6, `firebase_rtdb_structure.md` |
+| 5.8   | Exibição da Narrativa da IA          | Adicionar `narrativeResponse` ao histórico de chat no RTDB para ser exibido pelo componente de chat.                                                    | Média        | 5.2, 5.6, 5.7                |
+| 5.9   | Processamento de Comandos `/`        | Implementar lógica no frontend ou backend para interpretar comandos específicos (ex: `/rolar 1d20+5`, `/usar_pericia atletismo`) e integrá-los ao fluxo da IA. | Alta         | 5.3, 5.5                     |
+| 5.10  | Aba/Visualização Ficha Personagem    | Criar componente para exibir a ficha do personagem (`campaigns/{campaignId}/players/{userId}`) em uma aba lateral. Escutar atualizações do RTDB.        | Média        | 1.1, 1.2, 4, 5.1             |
+| **6** | **Editor Markdown Lateral**          | Aba lateral onde o jogador pode fazer anotações em Markdown.                                                                                              | **Média**    | 1 (Setup), 5 (Tela Jogo)     |
+| 6.1   | UI Editor Markdown                   | Integrar um editor Markdown (ex: `react-markdown`, `react-mde`) em uma aba lateral da Tela de Jogo.                                                     | Média        | 1.1, 5.1                     |
+| 6.2   | Lógica de Salvamento                 | Salvar o conteúdo do editor no RTDB (`campaigns/{campaignId}/editorContent/{userId}/{pageId}`). Implementar auto-save ou botão de salvar.               | Média        | 1.2, 6.1                     |
+| 6.3   | Lógica de Carregamento               | Carregar o conteúdo salvo do RTDB ao abrir a aba/página do editor.                                                                                        | Média        | 1.2, 6.1                     |
+| 6.4   | Gerenciamento de Páginas (Opcional)  | Permitir criar/renomear/deletar múltiplas páginas de anotações.                                                                                           | Média        | 6.1, 6.2, 6.3                |
+| **7** | **Sistema de Salas Multiplayer**     | Funcionalidade para campanhas em grupo, permitindo múltiplos jogadores na mesma sessão.                                                                   | **Alta**     | 1, 3, 5                      |
+| 7.1   | UI Gerenciamento de Sala             | Interface para o GM criar/abrir/fechar uma sala para a campanha. Interface para jogadores encontrarem/entrarem em salas ativas.                          | Média        | 1.1, 2 (Dashboard)           |
+| 7.2   | Lógica de Salas (Backend/Firebase)   | Criar/atualizar entradas no nó `rooms`. Gerenciar status (`active`/`inactive`) e lista de `activePlayerIds`. Usar regras de segurança do RTDB.          | Alta         | 1.2, 1.4                     |
+| 7.3   | Sincronização de Estado (Grupo)      | Garantir que todos os jogadores na sala vejam o mesmo estado de jogo (chat, atualizações da IA) em tempo real. (RTDB `onValue` já ajuda).             | Média        | 5, 7.2                       |
+| 7.4   | Gerenciamento de Turnos (Opcional)   | Se necessário combate tático, implementar lógica de ordem de turno (`gameState.turnOrder`) e notificação do jogador ativo.                             | Alta         | 5, 7.3                       |
+
+**Notas:**
+
+*   **Complexidade:** Baixa, Média, Alta, Muito Alta (estimativa inicial).
+*   **Dependências:** Indica tarefas que idealmente devem ser concluídas antes de iniciar a tarefa atual.
+*   **Iteração:** O desenvolvimento deve ser iterativo. Começar com o básico de cada funcionalidade e refinar.
+*   **Testes:** Testes unitários e de integração devem ser adicionados ao longo do desenvolvimento (não detalhados como tarefas separadas aqui).
+*   **UI/UX:** Refinamentos de UI/UX são contínuos e não listados exaustivamente.
+
