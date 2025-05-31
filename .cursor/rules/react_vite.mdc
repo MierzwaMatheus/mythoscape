@@ -1,0 +1,37 @@
+---
+type: Auto Attached
+description: Regras específicas para desenvolvimento Frontend com React e Vite.
+patterns: ["src/**/*.jsx", "src/**/*.tsx", "vite.config.js", "index.html"]
+---
+
+# Regras para React e Vite
+
+## Componentes React
+- **Componentes Funcionais:** Utilize componentes funcionais e Hooks (useState, useEffect, useContext, etc.) como padrão.
+- **Props:** Use PropTypes ou TypeScript para tipagem de props, garantindo clareza e prevenindo erros.
+- **Estado:** Gerencie o estado local com `useState`. Para estado global ou compartilhado, considere `useContext` com `useReducer` ou uma biblioteca de gerenciamento de estado (se necessário no futuro, mas comece simples).
+- **Estilização:** Utilize TailwindCSS ou Styled Components, conforme definido nos prompts do LOVABLE.DEV. Mantenha a estilização encapsulada ou organizada de forma consistente.
+- **Performance:** Otimize o desempenho com `React.memo`, `useCallback`, `useMemo` quando necessário. Evite renderizações desnecessárias.
+- **Acessibilidade:** Siga as melhores práticas de acessibilidade (ARIA attributes, semântica HTML).
+
+## Vite
+- **Configuração:** Mantenha o `vite.config.js` limpo e organizado. Utilize plugins do Vite conforme necessário.
+- **Assets:** Gerencie assets estáticos através da pasta `public` ou importando-os diretamente no código.
+- **Environment Variables:** Use variáveis de ambiente (`.env` files) para configurações sensíveis ou específicas do ambiente (como a chave da API do Google, embora a gestão final seja do usuário).
+
+## Estrutura e Boas Práticas
+- **Estrutura de Pastas:** Siga uma estrutura como:
+  ```
+  src/
+    components/      # Componentes reutilizáveis
+    pages/           # Componentes de página/rota
+    hooks/           # Hooks customizados
+    contexts/        # Contextos da aplicação
+    services/        # Lógica de API/Firebase
+    utils/           # Funções utilitárias
+    assets/          # Imagens, fontes, etc.
+    styles/          # Estilos globais ou temas
+    main.jsx         # Ponto de entrada
+  ```
+- **Code Splitting:** Utilize `React.lazy` e Suspense para code splitting em rotas ou componentes pesados.
+- **Testes:** (Futuro) Considere adicionar testes unitários e de integração com bibliotecas como Vitest e React Testing Library.
