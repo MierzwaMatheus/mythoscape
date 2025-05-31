@@ -54,4 +54,3 @@ npm run dev
 # Para build de produção
 npm run build
 ```
-
