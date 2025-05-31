@@ -1,51 +1,39 @@
-
 import React, { useState } from 'react';
-import { Send } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import useMythoScapeAgents from '@/services/agents-architecture';
 import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
 
-const ChatInput: React.FC = () => {
-  const [message, setMessage] = useState('');
+export default function ChatInput() {
+  const { campaignId } = useParams<{ campaignId: string }>();
+  const { user } = useAuth();
+  const [value, setValue] = useState('');
+  const {
+    processUserInput,
+    loading,
+    error
+  } = useMythoScapeAgents(campaignId!, user?.uid!, user?.googleApiKey || '');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if (message.trim()) {
-      console.log('Enviando mensagem:', message);
-      setMessage('');
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
-  };
+    if (!value.trim() || loading) return;
+    await processUserInput(value.trim());
+    setValue('');
+  }
 
   return (
-    <div className="p-4 bg-background border-t border-neutral-200">
-      <form onSubmit={handleSubmit} className="flex gap-2 items-end">
-        <div className="flex-1">
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Digite sua ação ou /comando..."
-            className="min-h-[80px] resize-none"
-            rows={3}
-          />
-        </div>
-        <Button 
-          type="submit" 
-          size="icon"
-          disabled={!message.trim()}
-          className="mb-0.5"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
-      </form>
-    </div>
+    <form onSubmit={handleSend} className="flex gap-2 p-2 border-t bg-white">
+      <input
+        className="flex-1 border rounded px-2 py-1 text-sm"
+        placeholder="Digite sua mensagem..."
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        disabled={loading}
+      />
+      <Button type="submit" disabled={loading || !value.trim()}>
+        {loading ? 'Enviando...' : 'Enviar'}
+      </Button>
+      {error && <div className="text-red-500 text-xs ml-2">{error}</div>}
+    </form>
   );
-};
-
-export default ChatInput;
+}
