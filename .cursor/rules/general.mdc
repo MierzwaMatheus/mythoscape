@@ -4,6 +4,8 @@ globs:
 alwaysApply: true
 ---
 
+SEMPRE FAÇA DEPLOY NO GIT LOCALMENTE, SEM PUSH
+
 # Regras Gerais do Projeto MythoScape
 
 ## Linguagem e Estilo

@@ -32,7 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      setUser(result.user);
     } catch (error) {
       console.error('Erro ao fazer login com Google:', error);
       throw error;
@@ -41,7 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithApple = async () => {
     try {
-      await signInWithPopup(auth, appleProvider);
+      const result = await signInWithPopup(auth, appleProvider);
+      setUser(result.user);
     } catch (error) {
       console.error('Erro ao fazer login com Apple:', error);
       throw error;
@@ -51,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
+      setUser(null);
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       throw error;

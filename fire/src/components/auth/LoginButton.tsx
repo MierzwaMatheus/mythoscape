@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginButtonProps {
   provider: 'google' | 'apple';
@@ -11,6 +12,7 @@ interface LoginButtonProps {
 export function LoginButton({ provider, className }: LoginButtonProps) {
   const { signInWithGoogle, signInWithApple } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
@@ -20,6 +22,8 @@ export function LoginButton({ provider, className }: LoginButtonProps) {
       } else {
         await signInWithApple();
       }
+      // Redireciona para a página inicial após o login bem-sucedido
+      navigate('/');
     } catch (error) {
       console.error(`Erro ao fazer login com ${provider}:`, error);
     } finally {
