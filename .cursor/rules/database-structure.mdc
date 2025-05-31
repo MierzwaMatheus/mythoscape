@@ -1,9 +1,9 @@
 ---
-description: 
+description: usado quando o usuário solicitar uma alteração ou que algo seja ligado ao banco de dados (realtime database)
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
-# Estrutura do Firebase Realtime Database para MythoScape
+# Estrutura do Firebase Realtime Database para MythoScape (Atualizada)
 
 Esta estrutura define como os dados da campanha de RPG serão armazenados no Firebase Realtime Database, servindo como contexto para a IA Mestre (MythoScape GM) e para a interface do usuário.
 A separação entre `playerKnowledge` e `gmKnowledge` é crucial para controlar o fluxo de informação.
@@ -115,19 +115,42 @@ A separação entre `playerKnowledge` e `gmKnowledge` é crucial para controlar 
           "attributes": {
             "strength": 16,
             "dexterity": 12,
-            // ... outros atributos PF2e
+            "constitution": 14,
+            "intelligence": 10,
+            "wisdom": 12,
+            "charisma": 8
           },
           "stats": {
             "maxHP": 20,
             "currentHP": 15,
             "ac": 18,
+            "fortitude": 5,
+            "reflex": 3,
+            "will": 3,
+            "perception": 3,
             "speed": 25
-            // ... outras estatísticas derivadas
           },
           "skills": {
+            "acrobatics": 2,
+            "arcana": 0,
             "athletics": 4,
-            "intimidation": 3
-            // ... outras perícias PF2e
+            "crafting": 0,
+            "deception": -1,
+            "diplomacy": -1,
+            "intimidation": 3,
+            "medicine": 1,
+            "nature": 1,
+            "occultism": 0,
+            "performance": -1,
+            "religion": 1,
+            "society": 0,
+            "stealth": 1,
+            "survival": 3,
+            "thievery": 1,
+            "lore": {
+              "warfare": 2,
+              "guard": 2
+            }
           },
           "feats": [
             "Power Attack"
@@ -223,21 +246,83 @@ A separação entre `playerKnowledge` e `gmKnowledge` é crucial para controlar 
         // ... outros logs (pode ser limitado para contexto da IA)
       },
 
-      "rules": { // Snippets de regras PF2e relevantes para a IA operar
+      "rules": { 
+        "attributes": {
+          "description": "Os seis atributos básicos que definem as capacidades físicas e mentais do personagem.",
+          "list": [
+            {
+              "id": "strength",
+              "name": "Força",
+              "description": "Mede o poder físico do personagem. Afeta dano corpo a corpo, capacidade de carga e testes de Atletismo."
+            },
+            {
+              "id": "dexterity",
+              "name": "Destreza",
+              "description": "Mede a agilidade, equilíbrio e reflexos. Afeta CA, salvaguardas de Reflexo e ataques à distância."
+            },
+            {
+              "id": "constitution",
+              "name": "Constituição",
+              "description": "Mede a saúde e resistência física. Afeta Pontos de Vida e salvaguardas de Fortitude."
+            },
+            {
+              "id": "intelligence",
+              "name": "Inteligência",
+              "description": "Mede a capacidade de aprendizado e raciocínio. Afeta o número de perícias treinadas e idiomas conhecidos."
+            },
+            {
+              "id": "wisdom",
+              "name": "Sabedoria",
+              "description": "Mede o bom senso, percepção e intuição. Afeta Percepção e salvaguardas de Vontade."
+            },
+            {
+              "id": "charisma",
+              "name": "Carisma",
+              "description": "Mede a força de personalidade e capacidade de influenciar outros. Afeta perícias sociais."
+            }
+          ],
+          "boosts": "Cada personagem começa com atributos 10 e recebe impulsos (boosts) de sua ancestralidade, background e classe. Um impulso aumenta o valor do atributo em 2, ou em 1 se o atributo já for 18 ou maior."
+        },
         "skillChecks": {
-          "difficultyClasses": { "trained": 15, "expert": 20, "master": 30, "legendary": 40 },
-          "degreesOfSuccess": "Critical Success (+10), Success, Failure, Critical Failure (-10)"
+          "formula": "1d20 + modificador de atributo + bônus de proficiência + outros bônus",
+          "proficiencyRanks": {
+            "untrained": "Nível + 0",
+            "trained": "Nível + 2",
+            "expert": "Nível + 4",
+            "master": "Nível + 6",
+            "legendary": "Nível + 8"
+          },
+          "difficultyClasses": { 
+            "trivial": 10,
+            "easy": 15,
+            "moderate": 20,
+            "hard": 25,
+            "very_hard": 30,
+            "extreme": 40
+          },
+          "degreesOfSuccess": {
+            "criticalSuccess": "Resultado ≥ CD+10",
+            "success": "Resultado ≥ CD",
+            "failure": "Resultado < CD",
+            "criticalFailure": "Resultado ≤ CD-10"
+          }
         },
         "basicActions": {
+          "stride": "Mova-se até sua velocidade.",
           "strike": "Faça um ataque corpo a corpo ou à distância.",
-          "move": "Mova-se até sua velocidade."
-          // ... outras ações básicas
+          "raise_a_shield": "Posicione seu escudo para se defender, ganhando seu bônus à CA.",
+          "take_cover": "Ganhe bônus de circunstância +2 à CA e salvaguardas de Reflexo.",
+          "escape": "Tente se libertar quando agarrado, imobilizado ou restringido.",
+          "interact": "Manipule um objeto ou característica do ambiente.",
+          "seek": "Procure por criaturas ou objetos escondidos."
         },
         "conditions": {
-          "ferido": "Recebe dano igual ao valor da condição no início do turno."
-          // ... outras condições
+          "frightened": "Você está com medo. O valor indica a penalidade de status às suas verificações e CDs.",
+          "sickened": "Você está doente. O valor indica a penalidade de status às suas verificações e CDs. Não pode comer ou beber voluntariamente.",
+          "wounded": "Você foi ferido gravemente. O valor aumenta em 1 cada vez que você cai inconsciente.",
+          "dying": "Você está morrendo. O valor aumenta em 1 quando sofre dano enquanto está caído. Morre se chegar a 4.",
+          "unconscious": "Você está inconsciente, não pode agir e fica indefeso."
         }
-        // ... outras regras necessárias
       },
 
       "editorContent": { // Conteúdo do editor Markdown lateral
@@ -263,14 +348,420 @@ A separação entre `playerKnowledge` e `gmKnowledge` é crucial para controlar 
       "status": "active" // ou "inactive"
     }
     // ... outras salas
+  },
+
+  "pathfinder2e": { // Nó global com regras e opções do sistema
+    "ancestries": {
+      "dwarf": {
+        "name": "Anão",
+        "description": "Anões são um povo baixo e robusto, conhecidos por sua teimosia, ferocidade e devoção.",
+        "hp": 10,
+        "size": "Médio",
+        "speed": 20,
+        "attributeBoosts": ["constitution", "wisdom", "free"],
+        "attributeFlaws": ["charisma"],
+        "traits": ["anão", "humanoide"],
+        "languages": ["anão", "comum"],
+        "additionalLanguages": ["gnomo", "goblin", "jotun", "órquico", "subterrâneo", "terrano"],
+        "specialAbilities": [
+          {
+            "name": "Visão no Escuro",
+            "description": "Você enxerga no escuro e na penumbra tão bem quanto na luz brilhante, embora sua visão no escuro seja em preto e branco."
+          }
+        ],
+        "heritages": [
+          {
+            "id": "ancient_blooded",
+            "name": "Sangue Antigo",
+            "description": "A magia ancestral corre em suas veias. Você ganha o benefício de treinado na perícia Arcana e ganha resistência a magia igual a metade do seu nível (mínimo 1)."
+          },
+          {
+            "id": "death_warden",
+            "name": "Guardião da Morte",
+            "description": "Seus ancestrais passaram incontáveis gerações vigiando locais antigos de poder ou sepulturas de parentes honrados. Você ganha resistência a energia negativa igual a metade do seu nível (mínimo 1) e recebe +1 de bônus de circunstância em salvaguardas contra efeitos de necromancia."
+          },
+          {
+            "id": "forge",
+            "name": "Forja",
+            "description": "Você tem um corpo adaptado ao calor extremo. Você ganha resistência a fogo igual a metade do seu nível (mínimo 1), e você trata os efeitos ambientais de calor como se fossem um grau menos extremos."
+          },
+          {
+            "id": "rock",
+            "name": "Rocha",
+            "description": "Seus ancestrais viveram em cavernas ou túneis rochosos, concedendo-lhe sentidos afiados. Você ganha sentido de tremor (impreciso) com alcance de 10 pés."
+          },
+          {
+            "id": "strong_blooded",
+            "name": "Sangue Forte",
+            "description": "Seu sangue corre vigoroso e forte, e você resiste a toxinas. Você ganha resistência a veneno igual a metade do seu nível (mínimo 1), e cada sucesso em uma salvaguarda contra um veneno conta como um sucesso crítico."
+          }
+        ]
+      },
+      "elf": {
+        "name": "Elfo",
+        "description": "Elfos são um povo alto e de vida longa, com forte tradição de arte e magia.",
+        "hp": 6,
+        "size": "Médio",
+        "speed": 30,
+        "attributeBoosts": ["dexterity", "intelligence", "free"],
+        "attributeFlaws": ["constitution"],
+        "traits": ["elfo", "humanoide"],
+        "languages": ["comum", "élfico"],
+        "additionalLanguages": ["celestial", "dracônico", "gnoll", "gnomo", "goblin", "órquico", "silvestre"],
+        "specialAbilities": [
+          {
+            "name": "Visão na Penumbra",
+            "description": "Você enxerga na penumbra tão bem quanto na luz brilhante, e ignora a condição de oculto devido à penumbra."
+          }
+        ],
+        "heritages": [
+          {
+            "id": "arctic",
+            "name": "Ártico",
+            "description": "Você vive em terras congeladas e é resistente ao frio. Você ganha resistência a frio igual a metade do seu nível (mínimo 1), e você trata os efeitos ambientais de frio como se fossem um grau menos extremos."
+          },
+          {
+            "id": "cavern",
+            "name": "Caverna",
+            "description": "Você nasceu ou viveu sob a terra, desenvolvendo a capacidade de ver no escuro. Você ganha visão no escuro."
+          },
+          {
+            "id": "seer",
+            "name": "Vidente",
+            "description": "Você tem uma conexão inata com o reino dos espíritos e pode sentir coisas que outros não podem. Você ganha o benefício de treinado na perícia Ocultismo e pode lançar a magia detectar magia como um truque inato arcano à vontade."
+          },
+          {
+            "id": "whisper",
+            "name": "Sussurro",
+            "description": "Você pode falar mentalmente com aliados próximos. Você pode lançar a magia mensagem como um truque inato arcano à vontade."
+          },
+          {
+            "id": "woodland",
+            "name": "Floresta",
+            "description": "Você tem uma conexão especial com as florestas e a natureza. Você ganha o benefício de treinado na perícia Natureza e pode lançar a magia falar com plantas uma vez por dia como uma magia inata primordial de 3º nível."
+          }
+        ]
+      },
+      "gnome": {
+        "name": "Gnomo",
+        "description": "Gnomos são um povo pequeno e resistente, com curiosidade insaciável e hábitos excêntricos.",
+        "hp": 8,
+        "size": "Pequeno",
+        "speed": 25,
+        "attributeBoosts": ["constitution", "charisma", "free"],
+        "attributeFlaws": ["strength"],
+        "traits": ["gnomo", "humanoide"],
+        "languages": ["comum", "gnômico", "silvestre"],
+        "additionalLanguages": ["anão", "dracônico", "élfico", "goblin", "jotun", "órquico"],
+        "specialAbilities": [
+          {
+            "name": "Visão na Penumbra",
+            "description": "Você enxerga na penumbra tão bem quanto na luz brilhante, e ignora a condição de oculto devido à penumbra."
+          }
+        ],
+        "heritages": [
+          {
+            "id": "chameleon",
+            "name": "Camaleão",
+            "description": "Sua pele e cabelo mudam de cor, ajudando você a se esconder. Você ganha o benefício de treinado na perícia Furtividade e pode mudar a cor da sua pele e cabelo para corresponder ao seu ambiente, ganhando +2 de bônus de circunstância em testes de Furtividade para Esconder-se."
+          },
+          {
+            "id": "fey_touched",
+            "name": "Tocado pelas Fadas",
+            "description": "A magia feérica corre forte em suas veias. Você pode lançar a magia luz como um truque inato arcano à vontade."
+          },
+          {
+            "id": "sensate",
+            "name": "Sensitivo",
+            "description": "Você tem sentidos aguçados. Você ganha um sentido especial: olfato preciso com alcance de 30 pés."
+          },
+          {
+            "id": "umbral",
+            "name": "Umbral",
+            "description": "Seus ancestrais viveram nas profundezas da terra, e você herdou sua capacidade de ver no escuro. Você ganha visão no escuro."
+          },
+          {
+            "id": "wellspring",
+            "name": "Fonte Mágica",
+            "description": "A magia arcana flui através de você. Você pode lançar um truque arcano de sua escolha da lista de magias arcanas. Você pode lançar este truque à vontade, como uma magia inata arcana."
+          }
+        ]
+      },
+      "human": {
+        "name": "Humano",
+        "description": "Humanos são diversos e adaptáveis, com amplo potencial e ambições profundas.",
+        "hp": 8,
+        "size": "Médio",
+        "speed": 25,
+        "attributeBoosts": ["free", "free"],
+        "attributeFlaws": [],
+        "traits": ["humano", "humanoide"],
+        "languages": ["comum"],
+        "additionalLanguages": ["qualquer"],
+        "specialAbilities": [],
+        "heritages": [
+          {
+            "id": "skilled",
+            "name": "Habilidoso",
+            "description": "Seus ancestrais valorizavam a versatilidade e o treinamento. Você se torna treinado em uma perícia de sua escolha."
+          },
+          {
+            "id": "versatile",
+            "name": "Versátil",
+            "description": "Humanos se adaptam a uma ampla variedade de circunstâncias. Você ganha um talento geral de 1º nível."
+          },
+          {
+            "id": "half_elf",
+            "name": "Meio-Elfo",
+            "description": "Um de seus pais era um elfo, ou seus ancestrais incluíam elfos. Você ganha o traço elfo, visão na penumbra e acesso a heranças e talentos élficos."
+          },
+          {
+            "id": "half_orc",
+            "name": "Meio-Orc",
+            "description": "Um de seus pais era um orc, ou seus ancestrais incluíam orcs. Você ganha o traço orc, visão no escuro e acesso a heranças e talentos órquicos."
+          }
+        ]
+      }
+    },
+    "classes": {
+      "fighter": {
+        "name": "Guerreiro",
+        "description": "Mestres das armas, guerreiros são incomparáveis em combate armado, usando armas, armaduras e técnicas de combate com habilidade inigualável.",
+        "keyAbility": "strength",
+        "secondaryAbilities": ["dexterity", "constitution"],
+        "hp": 10,
+        "proficiencies": {
+          "perception": "expert",
+          "fortitude": "expert",
+          "reflex": "expert",
+          "will": "trained",
+          "simpleWeapons": "expert",
+          "martialWeapons": "expert",
+          "unarmedAttacks": "expert",
+          "lightArmor": "trained",
+          "mediumArmor": "trained",
+          "heavyArmor": "trained",
+          "unarmored": "trained"
+        },
+        "classFeatures": [
+          {
+            "level": 1,
+            "name": "Ataque de Oportunidade",
+            "description": "Você pode atacar um inimigo que baixa a guarda. Você ganha a reação Ataque de Oportunidade, permitindo atacar um inimigo que se move ou usa uma ação manipular dentro do seu alcance."
+          },
+          {
+            "level": 1,
+            "name": "Talento de Guerreiro",
+            "description": "Você ganha um talento de guerreiro de 1º nível."
+          }
+        ]
+      },
+      "rogue": {
+        "name": "Ladino",
+        "description": "Ladinos são mestres em uma variedade de habilidades, e sempre têm o truque certo para a situação.",
+        "keyAbility": "dexterity",
+        "secondaryAbilities": ["intelligence", "charisma"],
+        "hp": 8,
+        "proficiencies": {
+          "perception": "expert",
+          "fortitude": "trained",
+          "reflex": "expert",
+          "will": "expert",
+          "simpleWeapons": "trained",
+          "martialWeapons": "trained",
+          "unarmedAttacks": "trained",
+          "lightArmor": "trained",
+          "unarmored": "trained"
+        },
+        "classFeatures": [
+          {
+            "level": 1,
+            "name": "Ataque Furtivo",
+            "description": "Você ataca alvos desprevenidos. Você causa 1d6 de dano de precisão extra contra alvos desprevenidos."
+          },
+          {
+            "level": 1,
+            "name": "Especialista em Perícias",
+            "description": "Você ganha um talento de perícia adicional."
+          },
+          {
+            "level": 1,
+            "name": "Talento de Ladino",
+            "description": "Você ganha um talento de ladino de 1º nível."
+          }
+        ]
+      },
+      "wizard": {
+        "name": "Mago",
+        "description": "Magos são estudiosos dedicados das artes arcanas, capazes de lançar poderosas magias.",
+        "keyAbility": "intelligence",
+        "secondaryAbilities": ["dexterity", "constitution"],
+        "hp": 6,
+        "proficiencies": {
+          "perception": "trained",
+          "fortitude": "trained",
+          "reflex": "trained",
+          "will": "expert",
+          "simpleWeapons": "trained",
+          "unarmedAttacks": "trained",
+          "unarmored": "trained"
+        },
+        "classFeatures": [
+          {
+            "level": 1,
+            "name": "Lançamento de Magias Arcanas",
+            "description": "Você pode lançar magias arcanas usando a atividade Lançar uma Magia. Você prepara suas magias a partir de um grimório."
+          },
+          {
+            "level": 1,
+            "name": "Grimório",
+            "description": "Você tem um grimório contendo 10 truques e magias arcanas de 1º nível."
+          },
+          {
+            "level": 1,
+            "name": "Escola Arcana",
+            "description": "Você se especializa em uma das oito escolas de magia, ganhando um poder de foco e um espaço de magia adicional de cada nível que só pode ser usado para preparar magias dessa escola."
+          },
+          {
+            "level": 1,
+            "name": "Talento de Mago",
+            "description": "Você ganha um talento de mago de 1º nível."
+          }
+        ]
+      }
+    },
+    "backgrounds": {
+      "acolyte": {
+        "name": "Acólito",
+        "description": "Você passou sua juventude em um templo ou mosteiro, estudando tradições religiosas.",
+        "attributeBoosts": ["intelligence", "wisdom"],
+        "trainedSkills": ["religião", "lore_scribing"],
+        "skillFeat": "Student of the Canon"
+      },
+      "criminal": {
+        "name": "Criminoso",
+        "description": "Você viveu uma vida de crime, seja como ladrão, contrabandista ou algum outro papel ilícito.",
+        "attributeBoosts": ["dexterity", "intelligence"],
+        "trainedSkills": ["stealth", "lore_underworld"],
+        "skillFeat": "Experienced Smuggler"
+      },
+      "entertainer": {
+        "name": "Artista",
+        "description": "Através da música, dança, atuação, contação de histórias ou outra forma de entretenimento, você cativou plateias.",
+        "attributeBoosts": ["dexterity", "charisma"],
+        "trainedSkills": ["performance", "lore_entertainment"],
+        "skillFeat": "Fascinating Performance"
+      },
+      "farmhand": {
+        "name": "Trabalhador Rural",
+        "description": "Com as mãos calejadas pelo trabalho árduo, você cresceu entre os campos e estábulos.",
+        "attributeBoosts": ["constitution", "wisdom"],
+        "trainedSkills": ["athletics", "lore_farming"],
+        "skillFeat": "Assurance (Athletics)"
+      },
+      "guard": {
+        "name": "Guarda",
+        "description": "Você serviu na guarda, mantendo a lei e protegendo os cidadãos.",
+        "attributeBoosts": ["strength", "charisma"],
+        "trainedSkills": ["intimidation", "lore_legal"],
+        "skillFeat": "Quick Coercion"
+      },
+      "merchant": {
+        "name": "Mercador",
+        "description": "Você ganha a vida comprando e vendendo bens, e aprendeu a reconhecer o valor de qualquer item.",
+        "attributeBoosts": ["intelligence", "charisma"],
+        "trainedSkills": ["diplomacy", "lore_mercantile"],
+        "skillFeat": "Bargain Hunter"
+      },
+      "scholar": {
+        "name": "Estudioso",
+        "description": "Você dedicou anos ao estudo e pesquisa, acumulando conhecimento em um campo específico.",
+        "attributeBoosts": ["intelligence", "wisdom"],
+        "trainedSkills": ["arcana", "lore_academia"],
+        "skillFeat": "Assurance (Arcana)"
+      }
+    },
+    "skills": {
+      "acrobatics": {
+        "name": "Acrobacia",
+        "attribute": "dexterity",
+        "description": "Manter o equilíbrio e realizar manobras acrobáticas.",
+        "actions": {
+          "balance": "Mover-se em superfícies estreitas ou instáveis.",
+          "tumble_through": "Mover-se através do espaço de um inimigo."
+        }
+      },
+      "arcana": {
+        "name": "Arcana",
+        "attribute": "intelligence",
+        "description": "Conhecimento sobre magia arcana, tradições mágicas, criaturas mágicas e planos de existência.",
+        "actions": {
+          "identify_magic": "Identificar a natureza de um efeito mágico arcano.",
+          "learn_spell": "Adicionar uma magia arcana ao seu grimório ou repertório."
+        }
+      },
+      "athletics": {
+        "name": "Atletismo",
+        "attribute": "strength",
+        "description": "Habilidades físicas como escalar, nadar, saltar e aplicar força bruta.",
+        "actions": {
+          "climb": "Escalar superfícies verticais.",
+          "force_open": "Abrir portas trancadas ou bloqueadas.",
+          "grapple": "Agarrar um oponente.",
+          "high_jump": "Saltar verticalmente.",
+          "long_jump": "Saltar horizontalmente.",
+          "swim": "Mover-se em água."
+        }
+      }
+    },
+    "feats": {
+      "general": {
+        "toughness": {
+          "name": "Resistência",
+          "level": 1,
+          "prerequisites": [],
+          "description": "Você tem uma resistência física excepcional. Você ganha pontos de vida adicionais iguais ao seu nível. Os requisitos para recuperar-se da condição morrendo são reduzidos em 1."
+        },
+        "fleet": {
+          "name": "Ágil",
+          "level": 1,
+          "prerequisites": [],
+          "description": "Você se move mais rápido a pé. Sua Velocidade aumenta em 5 pés."
+        }
+      },
+      "ancestry": {
+        "dwarven_weapon_familiarity": {
+          "name": "Familiaridade com Armas Anãs",
+          "level": 1,
+          "prerequisites": ["ancestry:dwarf"],
+          "description": "Seu parentesco anão concedeu a você familiaridade com armas anãs. Você está treinado com machados de batalha, picaretas e martelos de guerra."
+        },
+        "nimble_elf": {
+          "name": "Elfo Ágil",
+          "level": 1,
+          "prerequisites": ["ancestry:elf"],
+          "description": "Seus músculos são coordenados com precisão. Seu movimento não provoca ataques de oportunidade de criaturas que não estejam preparadas para sua velocidade."
+        }
+      },
+      "class": {
+        "power_attack": {
+          "name": "Ataque Poderoso",
+          "level": 1,
+          "prerequisites": ["class:fighter"],
+          "description": "Você faz um único e poderoso ataque que causa dano extra mas é menos preciso. Faça um Ataque com penalidade de -2. Se acertar, você causa dano adicional igual ao seu modificador de Força."
+        },
+        "sneak_attacker": {
+          "name": "Ataque Furtivo Aprimorado",
+          "level": 2,
+          "prerequisites": ["class:rogue"],
+          "description": "Você é especialmente eficaz ao atacar alvos desprevenidos. Seu dano de Ataque Furtivo aumenta para 2d6."
+        }
+      }
+    }
   }
 }
 ```
 
-**Observações:**
 
-*   **IDs:** Usar IDs únicos gerados pelo Firebase (`push()`) ou UUIDs para campanhas, personagens, itens, etc., onde aplicável.
-*   **Player vs. GM Knowledge:** A IA receberá uma versão filtrada desta estrutura como contexto, contendo apenas `metadata`, `gameState`, `rules`, `history` (parcial), e as seções `playerKnowledge` de `world`, `npcs`, `quests`, além da ficha completa (`players`) do(s) personagem(ns) ativo(s).
-*   **Regras:** O nó `rules` é uma simplificação. Idealmente, a IA teria acesso a um conjunto mais robusto de regras PF2e, mas para o escopo inicial, snippets essenciais podem ser armazenados aqui.
-*   **Editor Content:** Armazena o conteúdo do editor Markdown para cada jogador na campanha.
-*   **Escalabilidade:** Esta estrutura pode precisar de otimizações (desnormalização, índices) conforme a quantidade de dados aumenta, mas serve como um ponto de partida robusto.
+
+

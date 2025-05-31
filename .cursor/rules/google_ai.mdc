@@ -1,7 +1,7 @@
 ---
-description: 
+description: Usado quando o cursor tiver dúvidas de como usar o Google AI
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Regras para Google AI (LLM) API

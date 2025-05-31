@@ -1,7 +1,7 @@
 ---
-description: 
+description: usado para ver o que foi feito e o que precisamos fazer no projeto. O cursor deve atualizar este arquivo automaticamente
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 # Tabela de Tarefas Detalhadas - Projeto MythoScape
 
@@ -62,4 +62,5 @@ Esta tabela detalha as principais funcionalidades e subtasks necessárias para o
 *   **Iteração:** O desenvolvimento deve ser iterativo. Começar com o básico de cada funcionalidade e refinar.
 *   **Testes:** Testes unitários e de integração devem ser adicionados ao longo do desenvolvimento (não detalhados como tarefas separadas aqui).
 *   **UI/UX:** Refinamentos de UI/UX são contínuos e não listados exaustivamente.
+
 
