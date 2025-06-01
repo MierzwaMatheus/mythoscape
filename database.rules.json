@@ -1,5 +1,9 @@
 {
   "rules": {
+    // Regra geral: só usuários autenticados podem ler/escrever
+    ".read": "auth != null",
+    ".write": "auth != null",
+
     "users": {
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
