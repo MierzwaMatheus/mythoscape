@@ -14,9 +14,13 @@ export default function ChatLog() {
         <div className="text-neutral-400">Nenhuma mensagem ainda.</div>
       ) : (
         messages.map((msg) => (
-          <div key={msg.id} className="bg-neutral-100 rounded p-2 text-sm">
-            <span className="font-bold text-primary mr-2">{msg.userId}</span>
-            <span>{msg.content}</span>
+          <div key={msg.id} className={`rounded p-2 text-sm mb-2 ${msg.userId === 'gm' ? 'bg-neutral-200 text-left' : 'bg-primary text-white text-right'}`}>
+            <span className="font-bold mr-2">{msg.userId === 'gm' ? 'Mestre' : 'Você'}</span>
+            {msg.htmlContent ? (
+              <span dangerouslySetInnerHTML={{ __html: msg.htmlContent }} />
+            ) : (
+              <span>{msg.content}</span>
+            )}
             <span className="ml-2 text-xs text-neutral-400">{new Date(msg.timestamp).toLocaleTimeString()}</span>
           </div>
         ))

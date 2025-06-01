@@ -36,7 +36,8 @@ export default function GamePage() {
 
   return (
     <div className="h-[calc(100vh-2rem)] flex flex-col lg:flex-row gap-4 pb-16 lg:pb-0">
-      <div className="max-w-2xl mx-auto py-8">
+      {/* Coluna de informações da campanha - mais estreita */}
+      <div className="w-full lg:w-1/4 max-w-sm py-8">
         <Button variant="outline" onClick={() => navigate(-1)} className="mb-4">Voltar</Button>
         <h1 className="text-2xl font-bold mb-2">{meta.campaignName}</h1>
         <div className="mb-2 text-neutral-600">Sistema: {meta.system}</div>
@@ -53,14 +54,13 @@ export default function GamePage() {
         <div className="mt-8 text-neutral-400 text-center">(Funcionalidades em construção...)</div>
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0">
+      {/* Main Chat Area - ocupa mais espaço */}
+      <div className="flex-1 flex flex-col min-h-0 max-w-3xl mx-auto">
         <div className="mb-4">
           <h1 className="text-2xl font-semibold text-neutral-900">
             Jogando: {campaignId}
           </h1>
         </div>
-        
         {/* Chat Container */}
         <div className="flex-1 flex flex-col bg-background border border-neutral-200 rounded-lg overflow-hidden">
           <ChatLog />
@@ -68,8 +68,8 @@ export default function GamePage() {
         </div>
       </div>
 
-      {/* Sidebar Tabs */}
-      <div className="lg:w-80 w-full">
+      {/* Sidebar Tabs - largura fixa */}
+      <div className="lg:w-80 w-full max-w-xs">
         <SidebarTabs />
       </div>
     </div>

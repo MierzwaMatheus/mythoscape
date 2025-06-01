@@ -24,9 +24,15 @@ export function useUserCampaigns() {
 
     async function fetchCampaigns() {
       try {
-        const userCampaignsSnap = await get(ref(database, `users/${user.uid}/campaignsAsPlayer`));
-        const campaignIds = userCampaignsSnap.exists() ? Object.keys(userCampaignsSnap.val()) : [];
-        const metaPromises = campaignIds.map(async (id) => {
+        // Busca campanhas como player
+        const playerSnap = await get(ref(database, `users/${user.uid}/campaignsAsPlayer`));
+        const playerIds = playerSnap.exists() ? Object.keys(playerSnap.val()) : [];
+        // Busca campanhas como GM
+        const gmSnap = await get(ref(database, `users/${user.uid}/campaigns`));
+        const gmIds = gmSnap.exists() ? Object.keys(gmSnap.val()) : [];
+        // Junta e remove duplicatas
+        const allIds = Array.from(new Set([...playerIds, ...gmIds]));
+        const metaPromises = allIds.map(async (id) => {
           const metaSnap = await get(ref(database, `campaigns/${id}/metadata`));
           if (metaSnap.exists()) {
             return { id, ...metaSnap.val() };

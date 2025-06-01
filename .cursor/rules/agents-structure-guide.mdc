@@ -1,0 +1,354 @@
+---
+description: usado quando o cursor tiver duvidas de como usar os agentes de IA do Google no projeto
+globs: 
+alwaysApply: false
+---
+# Guia de Implementação Atualizado - MythoScape Agents Architecture
+
+Este guia explica como implementar a arquitetura de agentes especialistas do MythoScape no projeto, focando na integração dos arquivos [agents-architecture.tsx](mdc:fire/src/services/agents-architecture.tsx) e [campaign-setup-agent.tsx](mdc:fire/src/services/campaign-setup-agent.tsx) com a nova estrutura do banco de dados Firebase Realtime Database.
+
+
+## Principais Atualizações na Arquitetura
+
+### 1. Agente de Setup Inicial de Campanha
+
+Um novo agente especialista foi criado para gerar automaticamente o setup inicial completo de uma campanha com base no resumo do cenário, tom e nome fornecidos pelo usuário:
+
+- Gera história do mundo e da campanha
+- Cria localização inicial com pontos de interesse
+- Cria NPCs iniciais com personalidades e motivações
+- Estabelece facções relevantes
+- Define quests iniciais
+- Cria eventos iniciais
+- Gera uma mensagem de boas-vindas formatada em HTML
+
+### 2. Suporte a Relacionamentos Hierárquicos e IDs Únicos
+
+A arquitetura foi atualizada para:
+
+- Gerar IDs únicos com prefixos para cada tipo de entidade (location_, npc_, quest_, etc.)
+- Suportar hierarquias (locais dentro de locais, NPCs vinculados a locais)
+- Manter referências cruzadas entre entidades usando IDs
+- Diferenciar entre atualização de entidades existentes e criação de novas entidades
+
+### 3. Novo Agente Gerenciador de Relacionamentos
+
+Foi adicionado um novo agente especialista para gerenciar relações entre entidades:
+
+- Identifica entidades mencionadas na entrada do usuário
+- Determina o tipo de relação a ser estabelecida ou modificada
+- Atualiza as entidades relevantes para refletir a nova relação
+- Mantém a consistência em ambas as direções da relação
+
+### 4. Formatação HTML Aprimorada
+
+Todos os agentes agora retornam conteúdo formatado com HTML, usando classes específicas para diferentes tipos de conteúdo:
+
+```typescript
+interface AgentResponse {
+  content: string;       // Texto simples
+  htmlContent?: string;  // Conteúdo formatado com HTML
+  databaseUpdates?: Record<string, any>;
+  newEntities?: Record<string, any>;
+  entityUpdates?: Record<string, any>;
+}
+```
+
+## Integração com os Componentes Existentes
+
+### 1. Integração do Agente de Setup Inicial
+
+Modifique o componente de criação de campanha para utilizar o `CampaignSetupAgent`:
+
+```tsx
+// src/components/pages/CreateCampaignPage.tsx
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { CampaignSetupAgent } from '../../services/ai/campaign-setup-agent';
+
+const CreateCampaignPage = () => {
+  const [campaignData, setCampaignData] = useState({
+    campaignName: '',
+    settingSummary: '',
+    tone: 'Sério',
+    playerMode: 'Solo',
+    duration: 'Média',
+    system: 'pathfinder2e'
+  });
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!campaignData.campaignName || !campaignData.settingSummary) return;
+    
+    setLoading(true);
+    try {
+      const result = await CampaignSetupAgent({
+        ...campaignData,
+        userId: user.uid
+      }, user.googleApiKey);
+      
+      // Redirecionar para a página da campanha criada
+      navigate(`/campaign/${result.campaignId}`);
+    } catch (error) {
+      console.error("Erro ao criar campanha:", error);
+      // Mostrar mensagem de erro
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Formulário de criação de campanha */}
+    </form>
+  );
+};
+```
+
+### 2. Integração com ChatInput.tsx
+
+Modifique o componente `ChatInput.tsx` para utilizar o hook `useMythoScapeAgents` atualizado:
+
+```tsx
+// src/components/game/ChatInput.tsx
+import { useState } from 'react';
+import { useMythoScapeAgents } from '../../services/ai/agents-architecture';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCampaign } from '../../contexts/CampaignContext';
+
+const ChatInput = () => {
+  const [input, setInput] = useState('');
+  const { user } = useAuth();
+  const { campaign } = useCampaign();
+  
+  const { processUserInput, loading, error, response } = useMythoScapeAgents(
+    campaign.id,
+    user.uid,
+    user.googleApiKey
+  );
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+    
+    await processUserInput(input);
+    setInput('');
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Seu código de UI existente */}
+    </form>
+  );
+};
+```
+
+### 3. Integração com ChatLog.tsx
+
+Atualize o componente `ChatLog.tsx` para exibir as respostas HTML:
+
+```tsx
+// src/components/game/ChatLog.tsx
+import { useEffect, useRef } from 'react';
+import { useCampaign } from '../../contexts/CampaignContext';
+
+const ChatLog = () => {
+  const { campaign } = useCampaign();
+  const logRef = useRef(null);
+  
+  useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [campaign?.history?.chat]);
+  
+  return (
+    <div ref={logRef} className="overflow-y-auto">
+      {campaign?.history?.chat && Object.entries(campaign.history.chat)
+        .sort(([_, a], [__, b]) => a.timestamp - b.timestamp)
+        .map(([id, entry]) => (
+          <div 
+            key={id} 
+            className={`mb-4 ${entry.userId === 'gm' ? 'text-left' : 'text-right'}`}
+          >
+            {entry.htmlContent ? (
+              <div 
+                className={`inline-block p-3 rounded-lg ${
+                  entry.userId === 'gm' 
+                    ? 'bg-neutral-200 text-gray-800' 
+                    : 'bg-primary text-white'
+                }`}
+                dangerouslySetInnerHTML={{ __html: entry.htmlContent }}
+              />
+            ) : (
+              <div 
+                className={`inline-block p-3 rounded-lg ${
+                  entry.userId === 'gm' 
+                    ? 'bg-neutral-200 text-gray-800' 
+                    : 'bg-primary text-white'
+                }`}
+              >
+                {entry.content}
+              </div>
+            )}
+            <div className="text-xs text-gray-500 mt-1">
+              {new Date(entry.timestamp).toLocaleTimeString()}
+            </div>
+          </div>
+        ))}
+    </div>
+  );
+};
+```
+
+## Fluxo de Processamento Atualizado
+
+### 1. Fluxo de Criação de Campanha
+
+1. O usuário preenche o formulário de criação de campanha com:
+   - Nome da campanha
+   - Resumo do cenário
+   - Tom (sério, humorístico, sombrio, etc.)
+   - Modo de jogo (solo, grupo)
+   - Duração estimada
+
+2. O `CampaignSetupAgent` processa essas informações:
+   - Gera a história do mundo e da campanha
+   - Cria a localização inicial com pontos de interesse
+   - Cria NPCs iniciais
+   - Estabelece facções relevantes
+   - Define quests iniciais
+   - Cria eventos iniciais
+   - Gera uma mensagem de boas-vindas
+
+3. O banco de dados é atualizado com a estrutura completa da campanha
+4. O usuário é redirecionado para a página da campanha criada
+
+### 2. Fluxo de Processamento de Mensagens
+
+1. O usuário envia uma mensagem através do `ChatInput`
+2. O hook `useMythoScapeAgents` processa a entrada:
+   - Busca o contexto completo da campanha no Firebase
+   - Usa o `DirectorAgent` para determinar quais agentes especialistas acionar
+   - Prepara o contexto específico para cada agente
+   - Aciona os agentes especialistas em paralelo
+   - Compila as respostas com o `CompilerAgent`
+   - Processa novas entidades e atualizações de entidades existentes
+   - Atualiza o banco de dados com as mudanças
+   - Registra a interação no histórico
+   - Retorna a resposta narrativa com formatação HTML
+
+3. A interface exibe a resposta HTML formatada no `ChatLog`
+
+## Considerações para Implementação
+
+### 1. Dependências Necessárias
+
+Certifique-se de instalar as dependências necessárias:
+
+```bash
+npm install uuid @google/generative-ai
+```
+
+### 2. Estilos CSS para Formatação HTML
+
+Adicione estilos CSS para as classes personalizadas usadas nas respostas HTML:
+
+```css
+/* src/styles/chat.css */
+.description {
+  font-style: italic;
+  color: #4a5568;
+  margin: 1rem 0;
+}
+
+.combat {
+  color: #c53030;
+  font-weight: bold;
+}
+
+.npc-dialogue {
+  color: #2b6cb0;
+  margin: 0.5rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid #2b6cb0;
+}
+
+.system-message {
+  color: #718096;
+  font-style: italic;
+}
+```
+
+### 3. Regras de Segurança do Firebase
+
+Configure regras para garantir que usuários só possam acessar suas próprias campanhas:
+
+```json
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "campaigns": {
+      "$campaignId": {
+        ".read": "root.child('campaigns').child($campaignId).child('metadata').child('createdBy').val() === auth.uid || 
+                 root.child('campaigns').child($campaignId).child('players').hasChild(auth.uid)",
+        ".write": "root.child('campaigns').child($campaignId).child('metadata').child('createdBy').val() === auth.uid"
+      }
+    },
+    "global": {
+      ".read": "auth !== null",
+      ".write": false
+    }
+  }
+}
+```
+
+### 4. Tratamento de Erros
+
+Implemente tratamento de erros robusto para lidar com falhas na API do Google ou no Firebase:
+
+```tsx
+try {
+  // Código que pode falhar
+} catch (error) {
+  console.error("Erro detalhado:", error);
+  
+  // Determinar o tipo de erro
+  if (error.message.includes("API key")) {
+    // Erro de chave de API
+    setError("Chave de API inválida ou expirada. Por favor, verifique suas configurações.");
+  } else if (error.message.includes("network")) {
+    // Erro de rede
+    setError("Erro de conexão. Por favor, verifique sua internet e tente novamente.");
+  } else {
+    // Erro genérico
+    setError("Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.");
+  }
+}
+```
+
+## Testes
+
+Para testar a implementação:
+
+1. Teste a criação de campanha com diferentes resumos de cenário
+2. Verifique se o setup inicial é gerado corretamente
+3. Teste diferentes tipos de entradas do usuário:
+   - Exploração de locais
+   - Interação com NPCs
+   - Criação de relações entre entidades
+   - Combate
+   - Gerenciamento de inventário
+
+4. Verifique se as respostas HTML estão sendo renderizadas corretamente
+5. Confirme que as atualizações no banco de dados estão seguindo a estrutura correta
+6. Teste a criação e atualização de entidades hierárquicas

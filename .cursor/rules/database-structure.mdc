@@ -3,765 +3,456 @@ description: usado quando o usuário solicitar uma alteração ou que algo seja 
 globs: 
 alwaysApply: false
 ---
-# Estrutura do Firebase Realtime Database para MythoScape (Atualizada)
+# Estrutura Revisada do Firebase Realtime Database para MythoScape
 
-Esta estrutura define como os dados da campanha de RPG serão armazenados no Firebase Realtime Database, servindo como contexto para a IA Mestre (MythoScape GM) e para a interface do usuário.
-A separação entre `playerKnowledge` e `gmKnowledge` é crucial para controlar o fluxo de informação.
-
-```json
-{
-  "users": {
-    "userId1": {
-      "username": "Jogador Mestre",
-      "email": "mestre@email.com",
-      "campaignsAsGM": {
-        "campaignId1": true
-      },
-      "campaignsAsPlayer": {
-        "campaignId2": true
-      },
-      "googleApiKey": "user_provided_api_key" // Armazenado de forma segura, idealmente não aqui diretamente, mas gerenciado pelo Auth/Functions
-    },
-    "userId2": {
-      "username": "Jogador Aventureiro",
-      "email": "jogador@email.com",
-      "campaignsAsPlayer": {
-        "campaignId1": true,
-        "campaignId3": true
-      }
-    }
-    // ... outros usuários
-  },
-
-  "campaigns": {
-    "campaignId1": {
-      "metadata": {
-        "campaignName": "A Tumba Esquecida",
-        "gmUserId": "userId1",
-        "playerUserIds": {
-          "userId2": true
-        },
-        "system": "Pathfinder 2e",
-        "tone": "Sombrio",
-        "playerMode": "Solo", // ou "Grupo"
-        "duration": "Média",
-        "settingSummary": "Uma antiga tumba redescoberta em uma floresta amaldiçoada.",
-        "creationTimestamp": 1678886400000,
-        "lastUpdateTimestamp": 1678890000000,
-        "isPublic": false // Para busca de campanhas públicas
-      },
-
-      "world": {
-        "locations": {
-          "locationId1": {
-            "name": "Floresta Sussurrante",
-            "playerKnowledge": {
-              "description": "Uma floresta densa e escura, conhecida por ruídos estranhos e desaparecimentos.",
-              "knownExits": ["entrada_tumba", "trilha_vila"]
-            },
-            "gmKnowledge": {
-              "description": "A floresta é amaldiçoada por um espírito antigo. Há uma clareira secreta a leste.",
-              "hiddenExits": ["clareira_secreta"],
-              "encounters": ["encounterId1"],
-              "secrets": ["O espírito se manifesta à noite."]
-            }
-          },
-          "locationId2": {
-            "name": "Entrada da Tumba",
-            // ... playerKnowledge vs gmKnowledge
-          }
-          // ... outras localizações
-        },
-        "factions": {
-          "factionId1": {
-            "name": "Culto da Serpente",
-            "playerKnowledge": {
-              "reputation": "Rumores de atividades suspeitas na região."
-            },
-            "gmKnowledge": {
-              "goals": "Despertar o deus serpente na tumba.",
-              "leader": "npcId2",
-              "members": ["npcId3", "npcId4"],
-              "baseLocation": "locationId3"
-            }
-          }
-          // ... outras facções
-        },
-        "lore": {
-          "loreId1": {
-            "topic": "A Maldição da Floresta",
-            "playerKnowledge": {
-              "summary": "Dizem que a floresta é amaldiçoada, mas ninguém sabe ao certo por quê."
-            },
-            "gmKnowledge": {
-              "details": "A maldição foi lançada por um druida traído há 500 anos para proteger a tumba.",
-              "trigger": "Entrar na câmara central da tumba."
-            }
-          }
-          // ... outros pontos de lore
-        }
-      },
-
-      "players": {
-        "userId2": { // Corresponde ao ID do usuário
-          "characterId": "charId1",
-          "characterName": "Valerius",
-          "class": "Guerreiro",
-          "ancestry": "Humano",
-          "background": "Guarda",
-          "alignment": "Leal e Bom",
-          "level": 1,
-          "xp": 150,
-          "attributes": {
-            "strength": 16,
-            "dexterity": 12,
-            "constitution": 14,
-            "intelligence": 10,
-            "wisdom": 12,
-            "charisma": 8
-          },
-          "stats": {
-            "maxHP": 20,
-            "currentHP": 15,
-            "ac": 18,
-            "fortitude": 5,
-            "reflex": 3,
-            "will": 3,
-            "perception": 3,
-            "speed": 25
-          },
-          "skills": {
-            "acrobatics": 2,
-            "arcana": 0,
-            "athletics": 4,
-            "crafting": 0,
-            "deception": -1,
-            "diplomacy": -1,
-            "intimidation": 3,
-            "medicine": 1,
-            "nature": 1,
-            "occultism": 0,
-            "performance": -1,
-            "religion": 1,
-            "society": 0,
-            "stealth": 1,
-            "survival": 3,
-            "thievery": 1,
-            "lore": {
-              "warfare": 2,
-              "guard": 2
-            }
-          },
-          "feats": [
-            "Power Attack"
-            // ... outros talentos
-          ],
-          "inventory": {
-            "itemId1": { "name": "Espada Longa", "quantity": 1, "description": "Uma espada confiável.", "equipped": true },
-            "itemId2": { "name": "Escudo de Aço", "quantity": 1, "equipped": true },
-            "itemId3": { "name": "Poção de Cura (Menor)", "quantity": 2 },
-            "gold": 15
-          },
-          "conditions": [], // Ex: ["ferido 1", "amedrontado 2"]
-          "notes": {
-             "noteId1": { "title": "Sobre o Culto", "content": "Parecem perigosos, investigar mais.", "timestamp": 1678888000000 }
-          },
-          "knownInfo": { // Informações específicas que este jogador descobriu
-            "locations": {"locationId1": true},
-            "npcs": {"npcId1": "amigável"},
-            "lore": {"loreId1": true}
-          }
-        }
-        // ... outros jogadores na campanha
-      },
-
-      "npcs": {
-        "npcId1": {
-          "name": "Elara, a Eremita",
-          "playerKnowledge": {
-            "description": "Uma velha senhora que vive isolada na floresta. Parece saber muito sobre ervas.",
-            "location": "locationId1",
-            "disposition": "Neutro"
-          },
-          "gmKnowledge": {
-            "description": "Antiga aventureira, conhece a entrada secreta da tumba.",
-            "stats": { "level": 3, "class": "Druida" },
-            "secrets": ["Possui um mapa parcial da tumba."],
-            "quests": ["questId2"],
-            "inventory": ["item_mapa_parcial", "item_adaga_ritual"]
-          }
-        },
-        "npcId2": {
-          "name": "Zarthus, Líder do Culto",
-          // ... playerKnowledge vs gmKnowledge
-        }
-        // ... outros NPCs
-      },
-
-      "quests": {
-        "questId1": {
-          "name": "Investigar a Tumba",
-          "playerKnowledge": {
-            "description": "Explore a Tumba Esquecida e descubra seus segredos.",
-            "giver": "Ninguém (descoberta)",
-            "status": "Ativa",
-            "objectives": [
-              { "id": "obj1", "text": "Encontrar a entrada da tumba.", "completed": true },
-              { "id": "obj2", "text": "Explorar a primeira câmara.", "completed": false }
-            ]
-          },
-          "gmKnowledge": {
-            "trueGoal": "Impedir o Culto da Serpente.",
-            "reward": "100 XP, item mágico aleatório",
-            "hiddenObjectives": [
-              { "id": "hobj1", "text": "Derrotar Zarthus.", "completed": false }
-            ],
-            "associatedNpcs": ["npcId2"],
-            "associatedLocations": ["locationId2", "locationId3"]
-          }
-        }
-        // ... outras quests
-      },
-
-      "gameState": {
-        "currentLocationId": "locationId1",
-        "inGameDateTime": "Dia 1, 10:00",
-        "turnOrder": [], // Se em combate: ["charId1", "npcId3", "npcId4"]
-        "activeSceneDescription": "Vocês estão na borda da Floresta Sussurrante, o ar é frio e úmido."
-      },
-
-      "history": {
-        "logEntryId1": {
-          "timestamp": 1678887000000,
-          "type": "chat", // ou "action", "event"
-          "userId": "userId2", // ou "gm"
-          "content": "Valerius decide seguir a trilha escura para dentro da floresta."
-        },
-        "logEntryId2": {
-          "timestamp": 1678887500000,
-          "type": "event",
-          "userId": "gm",
-          "content": "Um uivo distante ecoa pela floresta."
-        }
-        // ... outros logs (pode ser limitado para contexto da IA)
-      },
-
-      "rules": { 
-        "attributes": {
-          "description": "Os seis atributos básicos que definem as capacidades físicas e mentais do personagem.",
-          "list": [
-            {
-              "id": "strength",
-              "name": "Força",
-              "description": "Mede o poder físico do personagem. Afeta dano corpo a corpo, capacidade de carga e testes de Atletismo."
-            },
-            {
-              "id": "dexterity",
-              "name": "Destreza",
-              "description": "Mede a agilidade, equilíbrio e reflexos. Afeta CA, salvaguardas de Reflexo e ataques à distância."
-            },
-            {
-              "id": "constitution",
-              "name": "Constituição",
-              "description": "Mede a saúde e resistência física. Afeta Pontos de Vida e salvaguardas de Fortitude."
-            },
-            {
-              "id": "intelligence",
-              "name": "Inteligência",
-              "description": "Mede a capacidade de aprendizado e raciocínio. Afeta o número de perícias treinadas e idiomas conhecidos."
-            },
-            {
-              "id": "wisdom",
-              "name": "Sabedoria",
-              "description": "Mede o bom senso, percepção e intuição. Afeta Percepção e salvaguardas de Vontade."
-            },
-            {
-              "id": "charisma",
-              "name": "Carisma",
-              "description": "Mede a força de personalidade e capacidade de influenciar outros. Afeta perícias sociais."
-            }
-          ],
-          "boosts": "Cada personagem começa com atributos 10 e recebe impulsos (boosts) de sua ancestralidade, background e classe. Um impulso aumenta o valor do atributo em 2, ou em 1 se o atributo já for 18 ou maior."
-        },
-        "skillChecks": {
-          "formula": "1d20 + modificador de atributo + bônus de proficiência + outros bônus",
-          "proficiencyRanks": {
-            "untrained": "Nível + 0",
-            "trained": "Nível + 2",
-            "expert": "Nível + 4",
-            "master": "Nível + 6",
-            "legendary": "Nível + 8"
-          },
-          "difficultyClasses": { 
-            "trivial": 10,
-            "easy": 15,
-            "moderate": 20,
-            "hard": 25,
-            "very_hard": 30,
-            "extreme": 40
-          },
-          "degreesOfSuccess": {
-            "criticalSuccess": "Resultado ≥ CD+10",
-            "success": "Resultado ≥ CD",
-            "failure": "Resultado < CD",
-            "criticalFailure": "Resultado ≤ CD-10"
-          }
-        },
-        "basicActions": {
-          "stride": "Mova-se até sua velocidade.",
-          "strike": "Faça um ataque corpo a corpo ou à distância.",
-          "raise_a_shield": "Posicione seu escudo para se defender, ganhando seu bônus à CA.",
-          "take_cover": "Ganhe bônus de circunstância +2 à CA e salvaguardas de Reflexo.",
-          "escape": "Tente se libertar quando agarrado, imobilizado ou restringido.",
-          "interact": "Manipule um objeto ou característica do ambiente.",
-          "seek": "Procure por criaturas ou objetos escondidos."
-        },
-        "conditions": {
-          "frightened": "Você está com medo. O valor indica a penalidade de status às suas verificações e CDs.",
-          "sickened": "Você está doente. O valor indica a penalidade de status às suas verificações e CDs. Não pode comer ou beber voluntariamente.",
-          "wounded": "Você foi ferido gravemente. O valor aumenta em 1 cada vez que você cai inconsciente.",
-          "dying": "Você está morrendo. O valor aumenta em 1 quando sofre dano enquanto está caído. Morre se chegar a 4.",
-          "unconscious": "Você está inconsciente, não pode agir e fica indefeso."
-        }
-      },
-
-      "editorContent": { // Conteúdo do editor Markdown lateral
-         "userId2": {
-            "pageId1": { "title": "Locais Importantes", "content": "# Floresta Sussurrante\n- Perigosa\n- Onde encontrar Elara?" },
-            "pageId2": { "title": "NPCs", "content": "## Elara\n- Sabe sobre ervas" }
-         }
-         // ... conteúdo para outros jogadores
-      }
-    }
-    // ... outras campanhas
-  },
-
-  "rooms": { // Para gerenciamento de sessões multiplayer
-    "roomId1": {
-      "campaignId": "campaignId1",
-      "activePlayerIds": {
-        "userId2": true,
-        "userId3": true
-      },
-      "gmUserId": "userId1",
-      "creationTimestamp": 1678891000000,
-      "status": "active" // ou "inactive"
-    }
-    // ... outras salas
-  },
-
-  "pathfinder2e": { // Nó global com regras e opções do sistema
-    "ancestries": {
-      "dwarf": {
-        "name": "Anão",
-        "description": "Anões são um povo baixo e robusto, conhecidos por sua teimosia, ferocidade e devoção.",
-        "hp": 10,
-        "size": "Médio",
-        "speed": 20,
-        "attributeBoosts": ["constitution", "wisdom", "free"],
-        "attributeFlaws": ["charisma"],
-        "traits": ["anão", "humanoide"],
-        "languages": ["anão", "comum"],
-        "additionalLanguages": ["gnomo", "goblin", "jotun", "órquico", "subterrâneo", "terrano"],
-        "specialAbilities": [
-          {
-            "name": "Visão no Escuro",
-            "description": "Você enxerga no escuro e na penumbra tão bem quanto na luz brilhante, embora sua visão no escuro seja em preto e branco."
-          }
-        ],
-        "heritages": [
-          {
-            "id": "ancient_blooded",
-            "name": "Sangue Antigo",
-            "description": "A magia ancestral corre em suas veias. Você ganha o benefício de treinado na perícia Arcana e ganha resistência a magia igual a metade do seu nível (mínimo 1)."
-          },
-          {
-            "id": "death_warden",
-            "name": "Guardião da Morte",
-            "description": "Seus ancestrais passaram incontáveis gerações vigiando locais antigos de poder ou sepulturas de parentes honrados. Você ganha resistência a energia negativa igual a metade do seu nível (mínimo 1) e recebe +1 de bônus de circunstância em salvaguardas contra efeitos de necromancia."
-          },
-          {
-            "id": "forge",
-            "name": "Forja",
-            "description": "Você tem um corpo adaptado ao calor extremo. Você ganha resistência a fogo igual a metade do seu nível (mínimo 1), e você trata os efeitos ambientais de calor como se fossem um grau menos extremos."
-          },
-          {
-            "id": "rock",
-            "name": "Rocha",
-            "description": "Seus ancestrais viveram em cavernas ou túneis rochosos, concedendo-lhe sentidos afiados. Você ganha sentido de tremor (impreciso) com alcance de 10 pés."
-          },
-          {
-            "id": "strong_blooded",
-            "name": "Sangue Forte",
-            "description": "Seu sangue corre vigoroso e forte, e você resiste a toxinas. Você ganha resistência a veneno igual a metade do seu nível (mínimo 1), e cada sucesso em uma salvaguarda contra um veneno conta como um sucesso crítico."
-          }
-        ]
-      },
-      "elf": {
-        "name": "Elfo",
-        "description": "Elfos são um povo alto e de vida longa, com forte tradição de arte e magia.",
-        "hp": 6,
-        "size": "Médio",
-        "speed": 30,
-        "attributeBoosts": ["dexterity", "intelligence", "free"],
-        "attributeFlaws": ["constitution"],
-        "traits": ["elfo", "humanoide"],
-        "languages": ["comum", "élfico"],
-        "additionalLanguages": ["celestial", "dracônico", "gnoll", "gnomo", "goblin", "órquico", "silvestre"],
-        "specialAbilities": [
-          {
-            "name": "Visão na Penumbra",
-            "description": "Você enxerga na penumbra tão bem quanto na luz brilhante, e ignora a condição de oculto devido à penumbra."
-          }
-        ],
-        "heritages": [
-          {
-            "id": "arctic",
-            "name": "Ártico",
-            "description": "Você vive em terras congeladas e é resistente ao frio. Você ganha resistência a frio igual a metade do seu nível (mínimo 1), e você trata os efeitos ambientais de frio como se fossem um grau menos extremos."
-          },
-          {
-            "id": "cavern",
-            "name": "Caverna",
-            "description": "Você nasceu ou viveu sob a terra, desenvolvendo a capacidade de ver no escuro. Você ganha visão no escuro."
-          },
-          {
-            "id": "seer",
-            "name": "Vidente",
-            "description": "Você tem uma conexão inata com o reino dos espíritos e pode sentir coisas que outros não podem. Você ganha o benefício de treinado na perícia Ocultismo e pode lançar a magia detectar magia como um truque inato arcano à vontade."
-          },
-          {
-            "id": "whisper",
-            "name": "Sussurro",
-            "description": "Você pode falar mentalmente com aliados próximos. Você pode lançar a magia mensagem como um truque inato arcano à vontade."
-          },
-          {
-            "id": "woodland",
-            "name": "Floresta",
-            "description": "Você tem uma conexão especial com as florestas e a natureza. Você ganha o benefício de treinado na perícia Natureza e pode lançar a magia falar com plantas uma vez por dia como uma magia inata primordial de 3º nível."
-          }
-        ]
-      },
-      "gnome": {
-        "name": "Gnomo",
-        "description": "Gnomos são um povo pequeno e resistente, com curiosidade insaciável e hábitos excêntricos.",
-        "hp": 8,
-        "size": "Pequeno",
-        "speed": 25,
-        "attributeBoosts": ["constitution", "charisma", "free"],
-        "attributeFlaws": ["strength"],
-        "traits": ["gnomo", "humanoide"],
-        "languages": ["comum", "gnômico", "silvestre"],
-        "additionalLanguages": ["anão", "dracônico", "élfico", "goblin", "jotun", "órquico"],
-        "specialAbilities": [
-          {
-            "name": "Visão na Penumbra",
-            "description": "Você enxerga na penumbra tão bem quanto na luz brilhante, e ignora a condição de oculto devido à penumbra."
-          }
-        ],
-        "heritages": [
-          {
-            "id": "chameleon",
-            "name": "Camaleão",
-            "description": "Sua pele e cabelo mudam de cor, ajudando você a se esconder. Você ganha o benefício de treinado na perícia Furtividade e pode mudar a cor da sua pele e cabelo para corresponder ao seu ambiente, ganhando +2 de bônus de circunstância em testes de Furtividade para Esconder-se."
-          },
-          {
-            "id": "fey_touched",
-            "name": "Tocado pelas Fadas",
-            "description": "A magia feérica corre forte em suas veias. Você pode lançar a magia luz como um truque inato arcano à vontade."
-          },
-          {
-            "id": "sensate",
-            "name": "Sensitivo",
-            "description": "Você tem sentidos aguçados. Você ganha um sentido especial: olfato preciso com alcance de 30 pés."
-          },
-          {
-            "id": "umbral",
-            "name": "Umbral",
-            "description": "Seus ancestrais viveram nas profundezas da terra, e você herdou sua capacidade de ver no escuro. Você ganha visão no escuro."
-          },
-          {
-            "id": "wellspring",
-            "name": "Fonte Mágica",
-            "description": "A magia arcana flui através de você. Você pode lançar um truque arcano de sua escolha da lista de magias arcanas. Você pode lançar este truque à vontade, como uma magia inata arcana."
-          }
-        ]
-      },
-      "human": {
-        "name": "Humano",
-        "description": "Humanos são diversos e adaptáveis, com amplo potencial e ambições profundas.",
-        "hp": 8,
-        "size": "Médio",
-        "speed": 25,
-        "attributeBoosts": ["free", "free"],
-        "attributeFlaws": [],
-        "traits": ["humano", "humanoide"],
-        "languages": ["comum"],
-        "additionalLanguages": ["qualquer"],
-        "specialAbilities": [],
-        "heritages": [
-          {
-            "id": "skilled",
-            "name": "Habilidoso",
-            "description": "Seus ancestrais valorizavam a versatilidade e o treinamento. Você se torna treinado em uma perícia de sua escolha."
-          },
-          {
-            "id": "versatile",
-            "name": "Versátil",
-            "description": "Humanos se adaptam a uma ampla variedade de circunstâncias. Você ganha um talento geral de 1º nível."
-          },
-          {
-            "id": "half_elf",
-            "name": "Meio-Elfo",
-            "description": "Um de seus pais era um elfo, ou seus ancestrais incluíam elfos. Você ganha o traço elfo, visão na penumbra e acesso a heranças e talentos élficos."
-          },
-          {
-            "id": "half_orc",
-            "name": "Meio-Orc",
-            "description": "Um de seus pais era um orc, ou seus ancestrais incluíam orcs. Você ganha o traço orc, visão no escuro e acesso a heranças e talentos órquicos."
-          }
-        ]
-      }
-    },
-    "classes": {
-      "fighter": {
-        "name": "Guerreiro",
-        "description": "Mestres das armas, guerreiros são incomparáveis em combate armado, usando armas, armaduras e técnicas de combate com habilidade inigualável.",
-        "keyAbility": "strength",
-        "secondaryAbilities": ["dexterity", "constitution"],
-        "hp": 10,
-        "proficiencies": {
-          "perception": "expert",
-          "fortitude": "expert",
-          "reflex": "expert",
-          "will": "trained",
-          "simpleWeapons": "expert",
-          "martialWeapons": "expert",
-          "unarmedAttacks": "expert",
-          "lightArmor": "trained",
-          "mediumArmor": "trained",
-          "heavyArmor": "trained",
-          "unarmored": "trained"
-        },
-        "classFeatures": [
-          {
-            "level": 1,
-            "name": "Ataque de Oportunidade",
-            "description": "Você pode atacar um inimigo que baixa a guarda. Você ganha a reação Ataque de Oportunidade, permitindo atacar um inimigo que se move ou usa uma ação manipular dentro do seu alcance."
-          },
-          {
-            "level": 1,
-            "name": "Talento de Guerreiro",
-            "description": "Você ganha um talento de guerreiro de 1º nível."
-          }
-        ]
-      },
-      "rogue": {
-        "name": "Ladino",
-        "description": "Ladinos são mestres em uma variedade de habilidades, e sempre têm o truque certo para a situação.",
-        "keyAbility": "dexterity",
-        "secondaryAbilities": ["intelligence", "charisma"],
-        "hp": 8,
-        "proficiencies": {
-          "perception": "expert",
-          "fortitude": "trained",
-          "reflex": "expert",
-          "will": "expert",
-          "simpleWeapons": "trained",
-          "martialWeapons": "trained",
-          "unarmedAttacks": "trained",
-          "lightArmor": "trained",
-          "unarmored": "trained"
-        },
-        "classFeatures": [
-          {
-            "level": 1,
-            "name": "Ataque Furtivo",
-            "description": "Você ataca alvos desprevenidos. Você causa 1d6 de dano de precisão extra contra alvos desprevenidos."
-          },
-          {
-            "level": 1,
-            "name": "Especialista em Perícias",
-            "description": "Você ganha um talento de perícia adicional."
-          },
-          {
-            "level": 1,
-            "name": "Talento de Ladino",
-            "description": "Você ganha um talento de ladino de 1º nível."
-          }
-        ]
-      },
-      "wizard": {
-        "name": "Mago",
-        "description": "Magos são estudiosos dedicados das artes arcanas, capazes de lançar poderosas magias.",
-        "keyAbility": "intelligence",
-        "secondaryAbilities": ["dexterity", "constitution"],
-        "hp": 6,
-        "proficiencies": {
-          "perception": "trained",
-          "fortitude": "trained",
-          "reflex": "trained",
-          "will": "expert",
-          "simpleWeapons": "trained",
-          "unarmedAttacks": "trained",
-          "unarmored": "trained"
-        },
-        "classFeatures": [
-          {
-            "level": 1,
-            "name": "Lançamento de Magias Arcanas",
-            "description": "Você pode lançar magias arcanas usando a atividade Lançar uma Magia. Você prepara suas magias a partir de um grimório."
-          },
-          {
-            "level": 1,
-            "name": "Grimório",
-            "description": "Você tem um grimório contendo 10 truques e magias arcanas de 1º nível."
-          },
-          {
-            "level": 1,
-            "name": "Escola Arcana",
-            "description": "Você se especializa em uma das oito escolas de magia, ganhando um poder de foco e um espaço de magia adicional de cada nível que só pode ser usado para preparar magias dessa escola."
-          },
-          {
-            "level": 1,
-            "name": "Talento de Mago",
-            "description": "Você ganha um talento de mago de 1º nível."
-          }
-        ]
-      }
-    },
-    "backgrounds": {
-      "acolyte": {
-        "name": "Acólito",
-        "description": "Você passou sua juventude em um templo ou mosteiro, estudando tradições religiosas.",
-        "attributeBoosts": ["intelligence", "wisdom"],
-        "trainedSkills": ["religião", "lore_scribing"],
-        "skillFeat": "Student of the Canon"
-      },
-      "criminal": {
-        "name": "Criminoso",
-        "description": "Você viveu uma vida de crime, seja como ladrão, contrabandista ou algum outro papel ilícito.",
-        "attributeBoosts": ["dexterity", "intelligence"],
-        "trainedSkills": ["stealth", "lore_underworld"],
-        "skillFeat": "Experienced Smuggler"
-      },
-      "entertainer": {
-        "name": "Artista",
-        "description": "Através da música, dança, atuação, contação de histórias ou outra forma de entretenimento, você cativou plateias.",
-        "attributeBoosts": ["dexterity", "charisma"],
-        "trainedSkills": ["performance", "lore_entertainment"],
-        "skillFeat": "Fascinating Performance"
-      },
-      "farmhand": {
-        "name": "Trabalhador Rural",
-        "description": "Com as mãos calejadas pelo trabalho árduo, você cresceu entre os campos e estábulos.",
-        "attributeBoosts": ["constitution", "wisdom"],
-        "trainedSkills": ["athletics", "lore_farming"],
-        "skillFeat": "Assurance (Athletics)"
-      },
-      "guard": {
-        "name": "Guarda",
-        "description": "Você serviu na guarda, mantendo a lei e protegendo os cidadãos.",
-        "attributeBoosts": ["strength", "charisma"],
-        "trainedSkills": ["intimidation", "lore_legal"],
-        "skillFeat": "Quick Coercion"
-      },
-      "merchant": {
-        "name": "Mercador",
-        "description": "Você ganha a vida comprando e vendendo bens, e aprendeu a reconhecer o valor de qualquer item.",
-        "attributeBoosts": ["intelligence", "charisma"],
-        "trainedSkills": ["diplomacy", "lore_mercantile"],
-        "skillFeat": "Bargain Hunter"
-      },
-      "scholar": {
-        "name": "Estudioso",
-        "description": "Você dedicou anos ao estudo e pesquisa, acumulando conhecimento em um campo específico.",
-        "attributeBoosts": ["intelligence", "wisdom"],
-        "trainedSkills": ["arcana", "lore_academia"],
-        "skillFeat": "Assurance (Arcana)"
-      }
-    },
-    "skills": {
-      "acrobatics": {
-        "name": "Acrobacia",
-        "attribute": "dexterity",
-        "description": "Manter o equilíbrio e realizar manobras acrobáticas.",
-        "actions": {
-          "balance": "Mover-se em superfícies estreitas ou instáveis.",
-          "tumble_through": "Mover-se através do espaço de um inimigo."
-        }
-      },
-      "arcana": {
-        "name": "Arcana",
-        "attribute": "intelligence",
-        "description": "Conhecimento sobre magia arcana, tradições mágicas, criaturas mágicas e planos de existência.",
-        "actions": {
-          "identify_magic": "Identificar a natureza de um efeito mágico arcano.",
-          "learn_spell": "Adicionar uma magia arcana ao seu grimório ou repertório."
-        }
-      },
-      "athletics": {
-        "name": "Atletismo",
-        "attribute": "strength",
-        "description": "Habilidades físicas como escalar, nadar, saltar e aplicar força bruta.",
-        "actions": {
-          "climb": "Escalar superfícies verticais.",
-          "force_open": "Abrir portas trancadas ou bloqueadas.",
-          "grapple": "Agarrar um oponente.",
-          "high_jump": "Saltar verticalmente.",
-          "long_jump": "Saltar horizontalmente.",
-          "swim": "Mover-se em água."
-        }
-      }
-    },
-    "feats": {
-      "general": {
-        "toughness": {
-          "name": "Resistência",
-          "level": 1,
-          "prerequisites": [],
-          "description": "Você tem uma resistência física excepcional. Você ganha pontos de vida adicionais iguais ao seu nível. Os requisitos para recuperar-se da condição morrendo são reduzidos em 1."
-        },
-        "fleet": {
-          "name": "Ágil",
-          "level": 1,
-          "prerequisites": [],
-          "description": "Você se move mais rápido a pé. Sua Velocidade aumenta em 5 pés."
-        }
-      },
-      "ancestry": {
-        "dwarven_weapon_familiarity": {
-          "name": "Familiaridade com Armas Anãs",
-          "level": 1,
-          "prerequisites": ["ancestry:dwarf"],
-          "description": "Seu parentesco anão concedeu a você familiaridade com armas anãs. Você está treinado com machados de batalha, picaretas e martelos de guerra."
-        },
-        "nimble_elf": {
-          "name": "Elfo Ágil",
-          "level": 1,
-          "prerequisites": ["ancestry:elf"],
-          "description": "Seus músculos são coordenados com precisão. Seu movimento não provoca ataques de oportunidade de criaturas que não estejam preparadas para sua velocidade."
-        }
-      },
-      "class": {
-        "power_attack": {
-          "name": "Ataque Poderoso",
-          "level": 1,
-          "prerequisites": ["class:fighter"],
-          "description": "Você faz um único e poderoso ataque que causa dano extra mas é menos preciso. Faça um Ataque com penalidade de -2. Se acertar, você causa dano adicional igual ao seu modificador de Força."
-        },
-        "sneak_attacker": {
-          "name": "Ataque Furtivo Aprimorado",
-          "level": 2,
-          "prerequisites": ["class:rogue"],
-          "description": "Você é especialmente eficaz ao atacar alvos desprevenidos. Seu dano de Ataque Furtivo aumenta para 2d6."
-        }
-      }
-    }
-  }
-}
+```
+firebase-rtdb/
+├── global/
+│   └── pathfinder2e/           # Regras globais do sistema (compartilhadas entre campanhas)
+│       ├── ancestries/         # Raças disponíveis
+│       │   ├── dwarf/          # Exemplo: Anão
+│       │   │   ├── name: "Anão"
+│       │   │   ├── description: "..."
+│       │   │   ├── abilityBoosts: ["Constituição", "Sabedoria"]
+│       │   │   ├── abilityFlaw: "Carisma"
+│       │   │   ├── hp: 10
+│       │   │   ├── size: "Médio"
+│       │   │   ├── speed: 20
+│       │   │   ├── traits: ["anão", "humanoide"]
+│       │   │   ├── languages: ["Comum", "Anão"]
+│       │   │   ├── specialAbilities: [...]
+│       │   │   └── heritages: [...]
+│       │   ├── elf/            # Exemplo: Elfo
+│       │   ├── human/          # Exemplo: Humano
+│       │   └── ...
+│       │
+│       ├── classes/            # Classes disponíveis
+│       │   ├── fighter/        # Exemplo: Guerreiro
+│       │   │   ├── name: "Guerreiro"
+│       │   │   ├── description: "..."
+│       │   │   ├── keyAbility: "Força"
+│       │   │   ├── hp: 10
+│       │   │   ├── proficiencies: {...}
+│       │   │   ├── classFeatures: [...]
+│       │   │   └── classFeats: [...]
+│       │   ├── rogue/          # Exemplo: Ladino
+│       │   ├── wizard/         # Exemplo: Mago
+│       │   └── ...
+│       │
+│       ├── backgrounds/        # Backgrounds disponíveis
+│       │   ├── acolyte/        # Exemplo: Acólito
+│       │   │   ├── name: "Acólito"
+│       │   │   ├── description: "..."
+│       │   │   ├── abilityBoosts: ["Sabedoria", "Inteligência"]
+│       │   │   ├── trainedSkill: "Religião"
+│       │   │   ├── trainedLore: "Religião"
+│       │   │   └── feat: "Estudante do Cânone"
+│       │   ├── criminal/       # Exemplo: Criminoso
+│       │   └── ...
+│       │
+│       ├── skills/             # Perícias e suas ações
+│       │   ├── acrobatics/     # Exemplo: Acrobacia
+│       │   │   ├── name: "Acrobacia"
+│       │   │   ├── description: "..."
+│       │   │   ├── keyAbility: "Destreza"
+│       │   │   ├── actions: [...]
+│       │   │   └── trainedOnly: false
+│       │   ├── arcana/         # Exemplo: Arcana
+│       │   └── ...
+│       │
+│       ├── feats/              # Talentos disponíveis
+│       │   ├── general/        # Talentos gerais
+│       │   ├── ancestry/       # Talentos de ancestralidade
+│       │   └── class/          # Talentos de classe
+│       │
+│       ├── spells/             # Magias disponíveis
+│       │   ├── cantrips/       # Truques
+│       │   ├── level1/         # Magias de nível 1
+│       │   └── ...
+│       │
+│       ├── items/              # Itens genéricos do sistema
+│       │   ├── weapons/        # Armas
+│       │   ├── armor/          # Armaduras
+│       │   ├── equipment/      # Equipamentos
+│       │   ├── consumables/    # Consumíveis
+│       │   └── treasures/      # Tesouros
+│       │
+│       └── rules/              # Regras básicas do sistema
+│           ├── actions/        # Ações básicas
+│           ├── conditions/     # Condições
+│           ├── skillChecks/    # Regras de testes de perícia
+│           ├── combatRules/    # Regras de combate
+│           └── advancement/    # Regras de avanço de personagem
+│
+├── users/                      # Informações dos usuários
+│   └── [userId]/
+│       ├── displayName: "Nome do Usuário"
+│       ├── email: "email@exemplo.com"
+│       ├── googleApiKey: "chave-api-do-google"
+│       ├── preferences: {...}  # Preferências do usuário
+│       └── campaigns: {        # Referências às campanhas do usuário
+│           "[campaignId]": {
+│               role: "player"  # ou "gamemaster"
+│           }
+│       }
+│
+└── campaigns/                  # Campanhas
+    └── [campaignId]/
+        ├── metadata/           # Metadados da campanha
+        │   ├── campaignName: "Nome da Campanha"
+        │   ├── system: "pathfinder2e"
+        │   ├── tone: "Sério"   # ou "Humorístico", "Sombrio", "Épico", etc.
+        │   ├── playerMode: "Solo" # ou "Grupo"
+        │   ├── duration: "Média"  # ou "Curta", "Longa"
+        │   ├── settingSummary: "Descrição do cenário"
+        │   ├── createdAt: 1622548800000
+        │   ├── updatedAt: 1622548800000
+        │   ├── createdBy: "[userId]"
+        │   ├── isActive: true
+        │   ├── maxPlayers: 5
+        │   ├── isPrivate: true
+        │   └── inviteCode: "abc123" # Para campanhas privadas
+        │
+        ├── players/            # Personagens dos jogadores
+        │   └── [userId]/       # Ficha do personagem
+        │       ├── characterName: "Nome do Personagem"
+        │       ├── ancestry: "dwarf"
+        │       ├── heritage: "ancient-blooded"
+        │       ├── background: "acolyte"
+        │       ├── class: "fighter"
+        │       ├── level: 1
+        │       ├── experience: 0
+        │       ├── alignment: "LN"
+        │       ├── deity: "Torag"
+        │       ├── abilities: {
+        │       │   strength: 16,
+        │       │   dexterity: 12,
+        │       │   constitution: 14,
+        │       │   intelligence: 10,
+        │       │   wisdom: 12,
+        │       │   charisma: 8
+        │       │}
+        │       ├── hp: {
+        │       │   max: 20,
+        │       │   current: 20,
+        │       │   temporary: 0
+        │       │}
+        │       ├── ac: 18
+        │       ├── saves: {
+        │       │   fortitude: 7,
+        │       │   reflex: 5,
+        │       │   will: 5
+        │       │}
+        │       ├── skills: {
+        │       │   acrobatics: {
+        │       │       rank: "untrained",
+        │       │       modifier: 1
+        │       │   },
+        │       │   // outras perícias...
+        │       │}
+        │       ├── feats: ["Robust Recovery", "Shield Block"]
+        │       ├── languages: ["Comum", "Anão"]
+        │       ├── proficiencies: {...}
+        │       ├── inventory: {
+        │       │   items: {
+        │       │       "item1": {
+        │       │           id: "longsword",
+        │       │           name: "Espada Longa",
+        │       │           quantity: 1,
+        │       │           equipped: true,
+        │       │           // outras propriedades...
+        │       │       },
+        │       │       // outros itens...
+        │       │   },
+        │       │   currency: {
+        │       │       platinum: 0,
+        │       │       gold: 15,
+        │       │       silver: 30,
+        │       │       copper: 50
+        │       │   },
+        │       │   encumbrance: {
+        │       │       current: 4.5,
+        │       │       max: 10
+        │       │   }
+        │       │}
+        │       ├── spells: {...}
+        │       ├── notes: "Notas do personagem"
+        │       ├── biography: "História do personagem"
+        │       ├── appearance: "Descrição física"
+        │       ├── personality: "Traços de personalidade"
+        │       ├── conditions: ["ferido"]
+        │       └── customData: {...} # Dados personalizados
+        │
+        ├── npcs/               # NPCs específicos da campanha
+        │   └── [npcId]/
+        │       ├── name: "Nome do NPC"
+        │       ├── type: "humanoid"
+        │       ├── level: 3
+        │       ├── ancestry: "human"
+        │       ├── class: "merchant"
+        │       ├── location: "[locationId]"
+        │       ├── faction: "[factionId]"
+        │       ├── disposition: {
+        │       │   default: "neutral",
+        │       │   toPlayers: {
+        │       │       "[userId]": "friendly"
+        │       │   }
+        │       │}
+        │       ├── stats: {...}
+        │       ├── inventory: {...}
+        │       ├── dialogue: {
+        │       │   greeting: "Bem-vindos à minha loja!",
+        │       │   topics: {...}
+        │       │}
+        │       ├── quests: ["[questId]"]
+        │       ├── relationships: {
+        │       │   "[npcId]": "ally"
+        │       │}
+        │       ├── schedule: {...}
+        │       ├── masterKnowledge: {  # Informações visíveis apenas para o mestre
+        │       │   secretMotives: "...",
+        │       │   hiddenItems: [...],
+        │       │   plotRelevance: "...",
+        │       │   notes: "..."
+        │       │}
+        │       └── playerKnowledge: {  # Informações visíveis para os jogadores
+        │       │   appearance: "...",
+        │       │   knownInfo: "...",
+        │       │   visibleItems: [...]
+        │       │}
+        │
+        ├── world/              # Mundo específico da campanha
+        │   ├── regions/        # Regiões do mundo
+        │   │   └── [regionId]/
+        │   │       ├── name: "Nome da Região"
+        │   │       ├── description: "Descrição da região"
+        │   │       ├── climate: "temperado"
+        │   │       ├── terrain: "montanhoso"
+        │   │       ├── locations: ["[locationId]"]
+        │   │       ├── masterKnowledge: {...}
+        │   │       └── playerKnowledge: {...}
+        │   │
+        │   ├── locations/      # Locais do mundo
+        │   │   └── [locationId]/
+        │   │       ├── name: "Nome do Local"
+        │   │       ├── type: "settlement" # ou "dungeon", "wilderness", etc.
+        │   │       ├── region: "[regionId]"
+        │   │       ├── description: "Descrição do local"
+        │   │       ├── connections: {
+        │   │       │   "[locationId]": {
+        │   │       │       type: "road",
+        │   │       │       distance: "2 dias",
+        │   │       │       difficulty: "normal"
+        │   │       │   }
+        │   │       │}
+        │   │       ├── points_of_interest: {
+        │   │       │   "[poiId]": {
+        │   │       │       name: "Nome do Ponto de Interesse",
+        │   │       │       description: "Descrição",
+        │   │       │       npcs: ["[npcId]"]
+        │   │       │   }
+        │   │       │}
+        │   │       ├── encounters: [...] # Encontros possíveis
+        │   │       ├── items: {...}      # Itens disponíveis
+        │   │       ├── masterKnowledge: {
+        │   │       │   secrets: "...",
+        │   │       │   hiddenEncounters: [...],
+        │   │       │   hiddenItems: [...],
+        │   │       │   notes: "..."
+        │   │       │}
+        │   │       └── playerKnowledge: {
+        │   │       │   visibleDescription: "...",
+        │   │       │   discoveredPOIs: [...],
+        │   │       │   visibleItems: [...]
+        │   │       │}
+        │   │
+        │   ├── factions/       # Facções do mundo
+        │   │   └── [factionId]/
+        │   │       ├── name: "Nome da Facção"
+        │   │       ├── description: "Descrição da facção"
+        │   │       ├── alignment: "LN"
+        │   │       ├── goals: [...]
+        │   │       ├── leaders: ["[npcId]"]
+        │   │       ├── members: ["[npcId]"]
+        │   │       ├── headquarters: "[locationId]"
+        │   │       ├── relationships: {
+        │   │       │   "[factionId]": "ally"
+        │   │       │}
+        │   │       ├── playerStanding: {
+        │   │       │   "[userId]": "neutral"
+        │   │       │}
+        │   │       ├── masterKnowledge: {...}
+        │   │       └── playerKnowledge: {...}
+        │   │
+        │   ├── items/          # Itens específicos da campanha
+        │   │   └── [itemId]/
+        │   │       ├── name: "Nome do Item"
+        │   │       ├── type: "weapon" # ou "armor", "consumable", etc.
+        │   │       ├── rarity: "common" # ou "uncommon", "rare", "unique"
+        │   │       ├── description: "Descrição do item"
+        │   │       ├── properties: {...}
+        │   │       ├── location: "[locationId]" # onde o item está
+        │   │       ├── owner: "[npcId]" # ou "[userId]"
+        │   │       ├── masterKnowledge: {...}
+        │   │       └── playerKnowledge: {...}
+        │   │
+        │   └── calendar/       # Sistema de calendário da campanha
+        │       ├── currentDate: {
+        │       │   day: 15,
+        │       │   month: 3,
+        │       │   year: 1250
+        │       │}
+        │       ├── months: [...]
+        │       ├── weekdays: [...]
+        │       ├── seasons: [...]
+        │       ├── holidays: [...]
+        │       └── events: {...}
+        │
+        ├── quests/             # Missões específicas da campanha
+        │   └── [questId]/
+        │       ├── name: "Nome da Missão"
+        │       ├── description: "Descrição da missão"
+        │       ├── type: "main" # ou "side", "personal"
+        │       ├── giver: "[npcId]"
+        │       ├── status: "active" # ou "completed", "failed"
+        │       ├── rewards: {
+        │       │   xp: 100,
+        │       │   gold: 50,
+        │       │   items: ["[itemId]"],
+        │       │   reputation: {
+        │       │       "[factionId]": 10
+        │       │   }
+        │       │}
+        │       ├── objectives: {
+        │       │   "[objectiveId]": {
+        │       │       description: "Descrição do objetivo",
+        │       │       status: "incomplete", # ou "complete"
+        │       │       location: "[locationId]",
+        │       │       target: "[npcId]" # ou "[itemId]"
+        │       │   }
+        │       │}
+        │       ├── dependencies: {
+        │       │   requires: ["[questId]"],
+        │       │   unlocks: ["[questId]"]
+        │       │}
+        │       ├── masterKnowledge: {
+        │       │   secretObjectives: [...],
+        │       │   twists: "...",
+        │       │   notes: "..."
+        │       │}
+        │       └── playerKnowledge: {
+        │       │   knownObjectives: [...],
+        │       │   knownRewards: {...},
+        │       │   journal: "..."
+        │       │}
+        │
+        ├── rules/              # Regras específicas da campanha
+        │   ├── houseRules: [...] # Regras da casa
+        │   ├── customActions: {...}
+        │   ├── customItems: {...}
+        │   ├── customFeats: {...}
+        │   ├── customSpells: {...}
+        │   ├── advancement: {
+        │   │   xpTable: [...],
+        │   │   milestones: [...]
+        │   │}
+        │   └── combatRules: {...}
+        │
+        ├── gameState/          # Estado atual do jogo
+        │   ├── currentLocationId: "[locationId]"
+        │   ├── activeQuests: ["[questId]"]
+        │   ├── weather: {
+        │   │   current: "chuvoso",
+        │   │   temperature: "frio",
+        │   │   effects: [...]
+        │   │}
+        │   ├── timeOfDay: "tarde"
+        │   ├── combat: {
+        │   │   inCombat: false,
+        │   │   round: 0,
+        │   │   turnOrder: [],
+        │   │   participants: {},
+        │   │   map: {...}
+        │   │}
+        │   ├── activeEffects: {...}
+        │   └── sessionState: {
+        │       lastSessionDate: 1622548800000,
+        │       sessionCount: 5,
+        │       sessionNotes: "..."
+        │   }
+        │
+        └── history/            # Histórico de interações
+            ├── chat/           # Mensagens de chat
+            │   └── [messageId]/
+            │       ├── timestamp: 1622548800000
+            │       ├── userId: "[userId]" # ou "gm"
+            │       ├── type: "speech" # ou "action", "roll", "ooc"
+            │       ├── content: "Texto da mensagem"
+            │       └── attachments: {...}
+            │
+            ├── events/         # Eventos importantes
+            │   └── [eventId]/
+            │       ├── timestamp: 1622548800000
+            │       ├── type: "combat" # ou "quest", "discovery", etc.
+            │       ├── description: "Descrição do evento"
+            │       ├── location: "[locationId]"
+            │       ├── participants: ["[userId]", "[npcId]"]
+            │       └── outcomes: {...}
+            │
+            └── journal/        # Entradas de diário
+                └── [entryId]/
+                    ├── timestamp: 1622548800000
+                    ├── author: "[userId]" # ou "gm"
+                    ├── title: "Título da entrada"
+                    ├── content: "Conteúdo da entrada"
+                    ├── visibility: "all" # ou "gm_only", "author_only"
+                    └── tags: [...]
 ```
 
+## Principais Melhorias na Estrutura
 
+1. **Isolamento Completo por Campanha**: Cada campanha tem seus próprios NPCs, locais, itens, quests e regras, garantindo que não haja vazamento de informações entre campanhas.
+
+2. **Separação Clara entre Conhecimento do Mestre e do Jogador**: Cada entidade (NPC, local, item, quest) tem seções separadas para `masterKnowledge` e `playerKnowledge`, permitindo que o sistema controle o que é revelado aos jogadores.
+
+3. **Estrutura Flexível para Variáveis do Usuário**: A estrutura suporta uma ampla gama de variáveis que o usuário pode querer criar ou modificar:
+   - Personagens detalhados com ancestralidade, classe, habilidades, etc.
+   - NPCs com personalidade, diálogos, agendas e relacionamentos
+   - Mundo rico com regiões, locais, facções e calendário
+   - Sistema de quests com objetivos, recompensas e dependências
+   - Regras personalizáveis para cada campanha
+
+4. **Sistema de Histórico Abrangente**: Registro detalhado de mensagens de chat, eventos importantes e entradas de diário, permitindo que jogadores e mestres acompanhem o progresso da campanha.
+
+5. **Suporte a Múltiplos Jogadores**: A estrutura está preparada para campanhas solo ou em grupo, com controle de acesso e visibilidade de informações.
+
+## Considerações para Implementação
+
+1. **Regras de Segurança do Firebase**: Implemente regras de segurança para garantir que usuários só possam acessar campanhas às quais foram convidados e apenas com o nível de permissão apropriado.
+
+2. **Inicialização de Campanha**: Ao criar uma nova campanha, inicialize a estrutura básica com valores padrão para facilitar o uso imediato.
+
+3. **Migração de Dados**: Se necessário, implemente um sistema para migrar dados de campanhas existentes para a nova estrutura.
+
+4. **Indexação**: Configure índices para consultas frequentes para melhorar o desempenho.
+
+5. **Backup**: Implemente um sistema de backup regular para evitar perda de dados.
+
+## Exemplo de Uso com Agentes
+
+Os agentes especialistas devem ser atualizados para trabalhar com esta estrutura, garantindo que:
+
+1. O `DirectorAgent` analise a entrada do usuário e determine quais agentes especialistas acionar.
+
+2. Cada agente especialista acesse apenas os dados relevantes para sua função:
+   - `CharacterCreationAgent`: Acessa `global/pathfinder2e` e `campaigns/[campaignId]/players/[userId]`
+   - `NPCManagerAgent`: Acessa `campaigns/[campaignId]/npcs`
+   - `WorldBuilderAgent`: Acessa `campaigns/[campaignId]/world`
+   - `CombatManagerAgent`: Acessa `campaigns/[campaignId]/gameState/combat`
+   - E assim por diante...
+
+3. O `CompilerAgent` compile as respostas e atualize o banco de dados conforme necessário, mantendo a separação entre conhecimento do mestre e do jogador.
+
+Esta estrutura fornece uma base sólida para o MythoScape, permitindo campanhas ricas e imersivas com isolamento adequado de dados e flexibilidade para atender às necessidades dos usuários.
 
 

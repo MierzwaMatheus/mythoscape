@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import { Label } from '../components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { ref, push, set, update } from 'firebase/database';
+import { ref, push, set, update, get, ref as dbRef } from 'firebase/database';
 import { database } from '@/lib/firebase';
+import CampaignSetupAgent from '@/services/campaign-setup-agent';
 
 const STEPS = [
   { id: 1, title: 'Informações Básicas', description: 'Nome e configurações iniciais' },
@@ -73,22 +74,27 @@ export default function CreateCampaignPage() {
     setError(null);
     try {
       if (!user) throw new Error('Usuário não autenticado');
-      const campaignRef = push(ref(database, 'campaigns'));
-      const campaignId = campaignRef.key!;
-      const now = Date.now();
-      await set(ref(database, `campaigns/${campaignId}/metadata`), {
+      let apiKey = user.googleApiKey;
+      if (!apiKey) {
+        // Busca do RTDB caso não esteja no contexto do usuário
+        const snap = await get(dbRef(database, `users/${user.uid}/googleApiKey`));
+        apiKey = snap.exists() ? snap.val() : '';
+        console.log('[DEBUG] API KEY buscada do RTDB:', apiKey);
+      } else {
+        console.log('[DEBUG] API KEY do contexto user:', apiKey);
+      }
+      if (!apiKey) throw new Error('Chave da Google API não encontrada');
+      const setupInput = {
         ...form,
-        creationTimestamp: now,
-        lastUpdateTimestamp: now,
-        playerUserIds: { [user.uid]: true },
-        isPublic: false
-      });
-      await update(ref(database, `users/${user.uid}/campaignsAsPlayer`), {
-        [campaignId]: true
-      });
-      navigate('/dashboard');
+        userId: user.uid
+      };
+      console.log('[DEBUG] Chamando CampaignSetupAgent com:', setupInput);
+      const result = await CampaignSetupAgent(setupInput, apiKey);
+      console.log('[DEBUG] Campanha criada pelo agente:', result);
+      navigate(`/campaign/${result.campaignId}`);
     } catch (err: any) {
       setError('Erro ao criar campanha');
+      console.error('[ERRO] Falha ao criar campanha:', err);
     } finally {
       setLoading(false);
     }
