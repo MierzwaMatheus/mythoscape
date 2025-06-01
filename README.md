@@ -148,18 +148,3 @@ npm run dev
 # Para build de produção
 npm run build
 ```
-
-## Regras e Boas Práticas
-
-- **Código:** Siga padrões do ESLint para React e TypeScript.
-- **Estilo:** Utilize TailwindCSS com customização de cores e temas.
-- **Componentização:** Componentes reutilizáveis, organizados em pastas.
-- **IDs:** Prefira IDs para elementos que serão estilizados ou manipulados via TypeScript.
-- **Simplicidade:** Lógica de programação simples, concisa e otimizada.
-- **Consistência Visual:** Siga o padrão de cores e espaçamentos definidos no Tailwind.
-- **Logs:** Use logs para rastreabilidade e depuração.
-- **Atualizações no RTDB:** Sempre valide paths e evite conflitos de ancestralidade.
-
----
-
-Para dúvidas técnicas ou expansão dos agentes, consulte o código em `fire/src/services/agents-architecture.tsx` e siga os exemplos de integração e boas práticas acima.
