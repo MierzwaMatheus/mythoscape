@@ -133,7 +133,7 @@ graph LR
     B --> C[Área de Jogo]
     C -- Interação do Jogador (Chat) --> D[Processamento pelos Agentes IA]
     D -- Narrativa e Atualizações de Estado --> C
-    C -- Fim da Sessão --> E[Salvamento Automático (RTDB)];
+    C -- Fim da Sessão --> E["Salvamento Automático (RTDB)"];
     
     style A fill:#8E44AD,color:#FFFFFF
     style B fill:#2980B9,color:#FFFFFF
